@@ -10,11 +10,10 @@ Build-Depends: debhelper (>= 7),
 	       imagemagick,
 	       texlive-base, texlive-latex-extra,
 	       python-docutils,
-	       sotcat,
+	       socat,
 	       tex4ht,
 	       transfig,
 	       xsltproc
-
 Standards-Version: 3.8.4
 Vcs-Git: git://github.com/thomas-moulard/urbi-debian.git
 Vcs-browser: http://github.com/thomas-moulard/urbi-debian
