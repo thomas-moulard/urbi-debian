@@ -1,0 +1,9 @@
+// Incorrect calls.
+Math.sin();
+[00000001:error] !!! input.u:2.1-10: sin: expected 1 argument, given 0
+// Mwahaha.
+Math.sin(3,1416);
+[00000002:error] !!! input.u:5.1-16: sin: expected 1 argument, given 2
+
++10;
+[00000003] 10

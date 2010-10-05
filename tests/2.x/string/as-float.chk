@@ -1,0 +1,6 @@
+"2".asFloat;
+[00000001] 2
+"2.1".asFloat;
+[00000002] 2.1
+"2.0a".asFloat;
+[00000003:error] !!! input.u:5.1-14: asFloat: unable to convert to float: "2.0a"

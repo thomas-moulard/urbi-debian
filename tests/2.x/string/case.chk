@@ -1,0 +1,4 @@
+"fOoBaR".toLower;
+[00000001] "foobar"
+"fOoBaR".toUpper;
+[00000002] "FOOBAR"

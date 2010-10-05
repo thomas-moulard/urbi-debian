@@ -1,0 +1,28 @@
+syncline << "doc/guide/k1-to-k2.tex:84";
+[01234567:syncline] "doc/guide/k1-to-k2.tex:84"
+//#line 84 "doc/guide/k1-to-k2.tex"
+class Foo
+{
+  var a = 12;
+  var b = 23;
+} | {};
+function Object.removeAllSlots()
+{
+  for (var s: localSlotNames)
+    removeSlot(s);
+} | {};
+Foo.removeAllSlots;
+Foo.localSlotNames;
+[00000000] []
+
+syncline << "doc/guide/k1-to-k2.tex:202";
+[01234567:syncline] "doc/guide/k1-to-k2.tex:202"
+//#line 202 "doc/guide/k1-to-k2.tex"
+{
+  var mytag = Tag.new("mytag");
+  at (mytag.leave?)
+    Channel.new("mytag") << "code has finished";
+  mytag: { echo ("foo") },
+};
+[00000002] *** foo
+[00000003:mytag] "code has finished"

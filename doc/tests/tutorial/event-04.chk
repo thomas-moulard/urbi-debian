@@ -1,0 +1,13 @@
+syncline << "doc/tutorial/event.tex:134";
+[01234567:syncline] "doc/tutorial/event.tex:134"
+//#line 134 "doc/tutorial/event.tex"
+var myEvent = Event.new;
+[00000000] Event_0x0
+at (myEvent?)
+  echo("ping");
+myEvent!;
+[00000000] *** ping
+// events work well with parallelism
+myEvent! & myEvent!;
+[00000000] *** ping
+[00000000] *** ping

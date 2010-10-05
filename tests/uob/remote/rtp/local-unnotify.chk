@@ -1,0 +1,38 @@
+//#plug urbi/all urbi/rtp
+//#remote urbi/all urbi/rtp
+
+UVar.new(Global, "val")|;
+Global.val = bigstring|;
+
+// Force RTP.
+Global.getSlot("val").rtp = true|;
+
+remall.setNotifyChangeByUVar(Global.getSlot("val"))|;
+sleep(100ms);
+Global.val = bigstring|;
+sleep(100ms);
+
+for(10) { Global.val = bigstring; sleep(100ms);};
+// careful, removeNotify is processed in the onChange so ensure it is called.
+// Also, writting Global.val is using the RTP channel, so sequence order
+// may not be respected.
+remall.removeNotify = remall.lastChange|;
+timeout(600ms) every|(150ms) Global.val = "fooo"|;
+timeout(3s) waituntil(remall.removeNotify == "");
+assert(remall.removeNotify == "");
+// Wait a bit more until it is effective.
+sleep(200ms);
+
+// Check that nothing goes over our RTP link anymore.
+var stats = remall.lobby.sharedRTP.stats|;
+for(4) { Global.val = bigstring; sleep(100ms);};
+var nstats = remall.lobby.sharedRTP.stats|;
+assert(stats == nstats);
+
+// ... second check for the same thing
+remall.lastChange = ""|;
+Global.val = bigstring|;
+sleep(400ms);
+remall.lastChange;
+[00000001] ""
+

@@ -1,0 +1,10 @@
+// Check that predefined exceptions are properly thrown.
+// Some were regressions.
+
+// Check Exception.Type;
+[1, 2].sort(1);
+[00000001:error] !!! input.u:5.1-14: unexpected 1, expected a Code
+
+
+1+"23":;
+[00000002:error] !!! input.u:9.1-7: invalid component in implicit tag

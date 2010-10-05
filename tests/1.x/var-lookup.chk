@@ -1,0 +1,18 @@
+skip_if_space;
+
+class C
+{
+  var x;
+}|
+function C.init()
+{
+  x = "c";
+}|
+
+var c = C.new|;
+c.x;
+[00000002] "c"
+
+c.x = "a" | {};
+c.x;
+[00000003] "a"

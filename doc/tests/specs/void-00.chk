@@ -1,0 +1,31 @@
+syncline << "doc/specs/void.tex:26";
+[01234567:syncline] "doc/specs/void.tex:26"
+//#line 26 "doc/specs/void.tex"
+assert {
+void.isVoid;
+{}.isVoid;
+{if (false) 123}.isVoid;
+};
+
+syncline << "doc/specs/void.tex:38";
+[01234567:syncline] "doc/specs/void.tex:38"
+//#line 38 "doc/specs/void.tex"
+void.foo;
+[00096374:error] !!! unexpected void
+void.acceptVoid.foo;
+[00102358:error] !!! lookup failed: foo
+
+syncline << "doc/specs/void.tex:48";
+[01234567:syncline] "doc/specs/void.tex:48"
+//#line 48 "doc/specs/void.tex"
+assert {
+void.isVoid;
+void.acceptVoid.isVoid;
+! 123.isVoid;
+};
+
+syncline << "doc/specs/void.tex:58";
+[01234567:syncline] "doc/specs/void.tex:58"
+//#line 58 "doc/specs/void.tex"
+void.acceptVoid.unacceptVoid.foo;
+[00096374:error] !!! unexpected void

@@ -1,0 +1,50 @@
+syncline << "doc/specs/boolean.tex:32";
+[01234567:syncline] "doc/specs/boolean.tex:32"
+//#line 32 "doc/specs/boolean.tex"
+assert {
+true;
+!false;
+2 < 6 === true;
+true.new === true;
+6 < 2 === false;
+};
+
+syncline << "doc/specs/boolean.tex:64";
+[01234567:syncline] "doc/specs/boolean.tex:64"
+//#line 64 "doc/specs/boolean.tex"
+assert(Global.asBool == true);
+assert(nil.asBool ==    false);
+void.asBool;
+[00000421:error] !!! unexpected void
+
+syncline << "doc/specs/boolean.tex:79";
+[01234567:syncline] "doc/specs/boolean.tex:79"
+//#line 79 "doc/specs/boolean.tex"
+assert {
+(true && 2) == 2;
+(false && 1 / 0) == false;
+};
+
+syncline << "doc/specs/boolean.tex:88";
+[01234567:syncline] "doc/specs/boolean.tex:88"
+//#line 88 "doc/specs/boolean.tex"
+assert {
+(true || 1/0) == true;
+(false || 2)  == 2;
+};
+
+syncline << "doc/specs/boolean.tex:96";
+[01234567:syncline] "doc/specs/boolean.tex:96"
+//#line 96 "doc/specs/boolean.tex"
+assert {
+!true == false;
+!false == true;
+};
+
+syncline << "doc/specs/boolean.tex:103";
+[01234567:syncline] "doc/specs/boolean.tex:103"
+//#line 103 "doc/specs/boolean.tex"
+assert {
+true.asBool ==  true;
+false.asBool == false;
+};

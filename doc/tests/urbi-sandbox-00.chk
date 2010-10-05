@@ -1,0 +1,14 @@
+syncline << "doc/urbi-sandbox.tex:32";
+[01234567:syncline] "doc/urbi-sandbox.tex:32"
+//#line 32 "doc/urbi-sandbox.tex"
+1+2;
+[00048238] 3
+"foo";
+[00048238] "foo"
+
+syncline << "doc/urbi-sandbox.tex:52";
+[01234567:syncline] "doc/urbi-sandbox.tex:52"
+//#line 52 "doc/urbi-sandbox.tex"
+assert {
+1+2 == 3;
+};

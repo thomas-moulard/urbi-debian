@@ -1,0 +1,57 @@
+// Make sure class declarations create a protoName.
+class Foo {};
+[00000001] Foo
+Foo.protos;
+[00000002] [Object]
+
+// Check the inheritance.
+class Bar : Foo {};
+[00000003] Bar
+Bar.protos;
+[00000004] [Foo]
+
+// This cannot work because of the prescanner which cuts at the ","...
+//
+// class Baz : public Foo, public Bar {};
+// [00000003] Baz
+// Baz.protos;
+
+// Make sure the lvalue used to create the class is not evaluated
+// several times.
+//
+// See also 2.x/inplace-atomic.chk.
+class Base
+{
+  function foo ()
+  {
+    cout << "Hello world!";
+    return this;
+  };
+};
+[00000005] Base
+
+class Base.foo.bar
+{
+  var x = 42;
+};
+[00000006:output] "Hello world!"
+[00000007] bar
+
+// The name of the class currently defined is *not* available in its
+// definition.  As a consequence, we can use the same name from another
+// scope.
+{
+  class a
+  {
+    var foo = 40;
+  };
+  {
+    class a : public a
+    {
+      var bar = 2;
+    };
+    var b = a.new;
+    b.foo + b.bar;
+  };
+};
+[00000008] 42

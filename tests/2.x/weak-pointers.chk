@@ -1,0 +1,33 @@
+// Check weakpointer creation/destruction
+var p = WeakPointer.new  |
+p = nil | 1;
+[00000001] 1
+
+p = WeakPointer.new |
+var q = p |
+var p.x = 7 |
+p = nil |
+q.x;
+[00000002] 7
+
+var pp = WeakPointer.new |
+var dd = WeakDictionary.new |
+dd[pp] = 1 |
+dd.values;
+[00000003] [1]
+
+pp = nil | dd.values;
+[00000004] []
+
+// Check weakDictionary destruction
+pp = WeakPointer.new |
+var pp.x = 42 |
+dd[pp] = 1|
+dd = nil | pp.x;
+[00000005] 42
+
+// Check that pp is in a correct state
+dd = WeakDictionary.new |
+dd[pp] = 2 |
+pp = nil | dd.values;
+[00000006] []

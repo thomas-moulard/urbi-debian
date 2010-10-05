@@ -1,0 +1,6 @@
+var i = 0;
+[00000001] 0
+
+// Empty while body used to assert in the flower
+while (i++ < 8)
+  ;

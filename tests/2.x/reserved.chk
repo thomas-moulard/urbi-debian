@@ -1,0 +1,4 @@
+skip_if_space;
+
+function volatile(x) { x*x };
+[00000001:error] !!! input.u:3.10-17: syntax error: reserved symbol: `volatile'

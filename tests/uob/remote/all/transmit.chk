@@ -1,0 +1,31 @@
+//#remote urbi/all
+
+remall.transmitD(1);
+[00000001] -1
+var a = remall.transmitD(1);
+[00000002] -1
+a;
+[00000003] -1
+
+remall.transmitS("coin");
+[00000004] "oi"
+var b = remall.transmitS("coin");
+[00000005] "oi"
+b;
+[00000006] "oi"
+
+//the server cant parse binaries in lists
+remall.transmitL([1,"coin",[]]);
+[00000007] [[], "coin", 1]
+var c = remall.transmitL([1,"coin",[]]);
+[00000008] [[], "coin", 1]
+c;
+[00000009] [[], "coin", 1]
+
+remall.transmitM(["coin" => [42, "string", [ => ]]]);
+[00000010] ["coin" => [42, "string", [ => ]]]
+var d = remall.transmitM(["coin" => [42, "string", [ => ]]]);
+[00000011] ["coin" => [42, "string", [ => ]]]
+d;
+[00000012] ["coin" => [42, "string", [ => ]]]
+

@@ -1,0 +1,11 @@
+// Check that callable passed to functions are not called.
+
+var f = function() {"foo".print} | {};
+{ var g = getSlot("f"); g.bar};
+[00000001:error] !!! input.u:4.25-29: lookup failed: bar
+
+var callEval = function {call.evalArgs} | {};
+callEval(getSlot("f")) | {};
+// foo should not get displayed
+1;
+[00000002] 1

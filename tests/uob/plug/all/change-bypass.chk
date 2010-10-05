@@ -1,0 +1,55 @@
+//#plug urbi/all
+
+// We test bypass mode by having the notify callbing write on the
+// (theoreticaly) const buffer, and having the writter check the
+// buffer content. It will thus check if the buffer realy is not
+// copied durring the process.
+all.markBypass(0, 1)|1;
+[00000001] 1
+
+all2.setBypassNotifyChangeImage("all.a")|;
+all.selfWriteI(0, "aaaaaa");
+[00000002] "bbbbbb"
+
+all.selfWriteB(0, "aaaaaaa");
+[00000003] "bbbbbbb"
+
+all.a.isNil;
+[00000004] true
+
+all.markBypass(1, 1)|1;
+[00000005] 1
+all2.setBypassNotifyChangeBinary("all.b")|;
+all.selfWriteI(1, "aaaaa");
+[00000006] "bbbbb"
+all.selfWriteB(1, "aaa");
+[00000007] "bbb"
+
+all.b.isNil;
+[00000008] true
+
+
+// Check urbi interception
+var i;
+all.getSlot("a").notifyChange(uobjects_handle, closure() { i=all.a})|;
+all.selfWriteI(0, "aaaaaa");
+[00000009] "bbbbbb"
+// Cannot check data content, it will depend on callback order.
+i.data.size;
+[00000010] 6
+
+
+// Disable bypass mode, check that nothing segv.
+all.markBypass(0, 0);
+[00000011] 1
+all.selfWriteI(0, "aaaaaa");
+[00000012] "aaaaaa"
+all.selfWriteB(0, "aaaaaaa");
+[00000013] "aaaaaaa"
+all.markBypass(1, 0);
+[00000014] 1
+all.selfWriteI(1, "aaaaaa");
+[00000015] "aaaaaa"
+all.selfWriteB(1, "aaaaaaa");
+[00000016] "aaaaaaa"
+

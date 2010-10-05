@@ -1,0 +1,4 @@
+// This should not crash.
+var t = Tag.new|;
+t.echo();
+[00000001:error] !!! input.u:3.1-8: echo: expected between 1 and 2 arguments, given 0

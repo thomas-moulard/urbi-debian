@@ -1,0 +1,35 @@
+var Object.a = 1;
+[00000001] 1
+
+lobby.locateSlot("a") == Object;
+[00000002] true
+
+Object.hasLocalSlot("a");
+[00000003] true
+
+lobby.hasLocalSlot("a");
+[00000004] false
+
+var b = 1;
+[00000005] 1
+
+b.hasSlot("a");
+[00000006] true
+
+b.hasLocalSlot("a");
+[00000007] false
+
+b.locateSlot("a") == Object;
+[00000008] true
+
+b.a = 1;
+[00000009] 1
+
+b.locateSlot("a") == Object;
+[00000010] false
+
+b.locateSlot("a") == b;
+[00000011] true
+
+b.locateSlot("no way") == nil;
+[00000012] true

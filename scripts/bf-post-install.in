@@ -1,0 +1,123 @@
+#! /bin/sh
+
+set -x
+set -e
+
+: ${BOOST_LDPATH='@BOOST_LDPATH@'}
+: ${COMPILATION_MODE_DEBUG='@COMPILATION_MODE_DEBUG@'}
+: ${PROJECT='@PACKAGE_TARNAME@'}
+: ${STRIP='@STRIP@'}
+: ${URBI_HOST_COMP='@URBI_HOST_COMP@'}
+: ${URBI_HOST_CPU='@URBI_HOST_CPU@'}
+: ${URBI_HOST_OS='@URBI_HOST_OS@'}
+
+builddir='@abs_top_builddir@'
+host='@host@'
+prefix='@prefix@'
+srcdir='@abs_top_srcdir@'
+
+# Do not sort by alphabetical order here.  exec_prefix typically uses
+# $prefix, and libdir uses $exec_prefix.  Hence the double quotes too.
+# $bindir is needed because on Windows we define libdir as ${bindir}.
+exec_prefix="@exec_prefix@"
+bindir="@bindir@"
+libdir="@libdir@"
+
+# The build-farm defines destdir, not DESTDIR.  But DESTDIR is
+# definitely more traditional and allows to run "make
+# DESTDIR=/tmp/here install relocatable" instead of having to use two
+# different names.
+: ${DESTDIR=$destdir}
+
+if test -z "$DESTDIR"; then
+  echo >&2 "$0: DESTDIR (or destdir) must be defined (and used with make install)"
+  exit 1
+fi
+export DESTDIR
+
+## -------------- ##
+## Post-install.  ##
+## -------------- ##
+
+
+# --------------------------- #
+# Completion/relocatability.  #
+# --------------------------- #
+
+# Boost.
+#
+$builddir/scripts/install-boost
+
+# Shared lib dependencies.
+#
+# Complete the package with missing libraries, strip if wanted, make
+# it relocatable, and check there are no missing dependencies.
+strip_opt=
+$COMPILATION_MODE_DEBUG || strip_opt=--strip
+$srcdir/build-aux/bin/check-lib-deps            \
+  --verbose --verbose --verbose --verbose       \
+  --destdir="$DESTDIR"                          \
+  --host-os="$URBI_HOST_OS"                     \
+  --libdir="$libdir"                            \
+  --libpath="$BOOST_LDPATH"                     \
+  $strip_opt --strip-command="$STRIP"           \
+  "$DESTDIR"
+
+# Header completion.  Might have become useless because of install-boost.
+$srcdir/build-aux/bin/check-include-deps        \
+  --verbose --verbose --verbose --verbose       \
+  --check                                       \
+  --include-dir="$DESTDIR$prefix/include"       \
+  $builddir
+
+
+
+# ------- #
+# Fixes.  #
+# ------- #
+
+# 1. Fix libtool usage of +=.
+# 2. Remove -nostdlib and explicit stdlib from libtool.
+#
+# The resulting libtool may not work, but it is not working without
+# patch anyway...
+find "$DESTDIR$prefix" -name libtool |
+  xargs perl -pi                                                        \
+       -e 's/^\s*eval "\$1\+=\\\$2"$/eval "\$1=\\\$\$1\\" \$2\\""/;'    \
+       -e 's/^predep_objects=.*/#- $&/;'                                \
+       -e 's/postdep_objects=.*/#- $&/;'                                \
+       -e 's/-nostdlib//g;'                                             \
+       -e 's/^SED=.*/SED=sed/;'
+
+# Remove ccache and -Werror from the param.mk and libtool.
+# Remove also hidden visibility as it prevents linking uobjects using
+# boost symbols inside libport.
+find "$DESTDIR$prefix" '(' -name param.mk -or -name libtool ')' |
+  xargs perl -pi                                \
+        -e 's/ccache //;'                       \
+        -e 's/g(cc|\+\+)(?:-[\d.]+)/g$1/;'      \
+        -e 's/-Werror//;'                       \
+        -e 's/-fvisibility=hidden//;'           \
+        -e 's/-fvisibility-inlines-hidden//;'
+
+# Restore +x on libtool.
+find "$DESTDIR$prefix" -name libtool -exec chmod u+x '{}' ';'
+
+# Set more permissive access rights.
+chmod -R a+rX "$DESTDIR$prefix"
+
+
+# ---------- #
+# Removals.  #
+# ---------- #
+
+# We have some problems with the *.la files.  For instance, although
+# we use Boost as static libraries, they appear as runtime
+# dependencies.  We could try to fix the *.la files, but it appears to
+# work well without them.
+find "$DESTDIR$prefix" -name '*.la' -delete
+
+# Get rid of empty directories, recursively.  Of course it is better
+# not to create these directories, but Automake is not helping us
+# here.
+find "$DESTDIR$prefix" -empty -a -type d -delete

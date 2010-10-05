@@ -1,0 +1,25 @@
+//#remote urbi/all
+
+var Global.z = 12|;
+remall2.a = 10|;
+remall.makeCall("remall", "writeD", ["Global.z", 42]);
+sleep(200ms);
+Global.z;
+[00000001] 42
+var r = remall.new(0)|;
+remall.makeCall(r, "writeD", [remall2.getSlot("a"), 20]);
+sleep(200ms);
+remall2.a;
+[00000002] 20
+
+
+// Ensure no deadlocks occurrs when stacking remote calls
+function Global.bounce()
+{
+  remall.makeCall("remall", "writeD", ["remall.a", 20]);
+}|;
+
+remall.makeCall("Global", "bounce", []);
+sleep(200ms);
+remall.a;
+[00000003] 20

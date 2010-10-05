@@ -1,0 +1,30 @@
+//#plug urbi/all urbi/rtp
+//#remote urbi/all urbi/rtp
+
+fakeRTPError;
+
+UVar.new(Global, "val")|;
+Global.val = bigstring|;
+
+// Force RTP.
+Global.getSlot("val").rtp = true|;
+
+remall.setNotifyChangeByUVar(Global.getSlot("val"))|;
+sleep(100ms);
+Global.val = bigstring|;
+sleep(100ms);
+
+var r = remall.lobby.bytesReceived|
+var s = remall.lobby.bytesSent|
+for(10) { Global.val = bigstring; sleep(100ms);};
+
+// Big strings!
+// Take margin, some values were dropped before RTP failure was detected.
+assert(remall.lobby.bytesSent - s > bigstring.size*5);
+
+// ... that are actually received
+remall.lastChange = ""|;
+Global.val = bigstring|;
+sleep(400ms);
+remall.lastChange;
+[00000001] "Global.val"

@@ -1,0 +1,5 @@
+var w00t = false;
+[00000001] false
+waituntil(!w00t);
+w00t = true;
+[00000001] true

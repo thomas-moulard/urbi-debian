@@ -1,0 +1,567 @@
+%% Copyright (C) 2010, Gostai S.A.S.
+%%
+%% This software is provided "as is" without warranty of any kind,
+%% either expressed or implied, including but not limited to the
+%% implied warranties of fitness for a particular purpose.
+%%
+%% See the LICENSE file for more information.
+
+\chapter{Building \usdk}
+\label{sec:build}
+\setHtmlFileName{build}
+
+\lstnewenvironment{package}[1][]
+  {\cxxPre%
+    \lstset{language={},
+      style=UrbiSDKEnv,
+      #1}}
+  {\cxxPost}
+
+This section is meant for people who want to \emph{build} the \usdk.  If
+you just want to install a pre-built \usdk, see \autoref{sec:installation}.
+
+\section{Requirements}
+\label{sec:build:req}
+
+This section lists all the dependencies of this package.  Some of them are
+required to \dfn{bootstrap} the package, i.e., to build it from the
+repository.  Others are required to \dfn{build} the package, i.e., to
+compile it from a tarball, or after a bootstrap.
+
+\subsection{Bootstrap}
+
+To bootstrap this package from its repository, and then to compile it,
+the following tools are needed.
+
+\begin{description}
+\item[Autoconf 2.64 or later]~\\
+
+\begin{package}
+package: autoconf
+\end{package}
+
+\item[Automake 1.11.1 or later] Note that if you have to install Automake by
+  hand (as opposed to ``with your distribution's system''), you have to tell
+  its \command{aclocal} that it should also look at the files from the
+  system's aclocal.  If \file{/usr/local/bin/aclocal} is the one you just
+  installed, and \file{/usr/bin/aclocal} is the system's one, then run
+  something like this:
+
+\begin{shell}
+$ dirlist=$(/usr/local/bin/aclocal --print-ac-dir)/dirlist
+$ sudo mkdir -p $(dirname $dirlist)
+$ sudo /usr/bin/aclocal --print-ac-dir >>$dirlist
+\end{shell}
+
+\begin{package}
+package: automake
+\end{package}
+
+\item[Cvs]
+  This surprising requirement comes from the system Bison uses to fetch
+  the current version of the message translations.
+\begin{package}
+package: cvs
+\end{package}
+
+\item[Git 1.6 or later]
+  Beware that older versions behave poorly with submodules.
+\begin{package}
+package: git-core
+\end{package}
+
+\item[Gettext 1.17]
+  Required to bootstrap Bison.  In particular it provides autopoint.
+\begin{package}
+package: gettext
+\end{package}
+
+\item[GNU sha1sum]
+  We need the GNU version of sha1sum.
+\begin{package}
+package: coreutils
+\end{package}
+
+\item[Help2man]
+Needed by Bison.
+\begin{package}
+package: help2man
+\end{package}
+
+\item[Python] You need \file{xml/sax}, which seems to be part only of
+  Python 2.6.  Using \command{python\_select} can be useful to state
+  that you want to use Python 2.6 by default (\samp{sudo
+    python\_select python26}).
+\begin{package}
+deb: python2.6
+MacPorts: python26
+MacPorts: python_select
+\end{package}
+
+\item[Texinfo] Needed to compile Bison.
+\begin{package}
+package: texinfo
+\end{package}
+
+\item[yaml for Python] The AST is generated from a description written
+  in YAML.  Our (Python) tools need to read these files to generate
+  the AST classes.  See \url{http://pyyaml.org/wiki/PyYAML}.  The
+  installation procedure on Cygwin is:
+
+\begin{shell}
+$ cd /tmp
+$ wget http://pyyaml.org/download/pyyaml/PyYAML-3.09.zip
+$ unzip PyYAML-3.09.zip
+$ cd pyYAML-3.09
+$ python setup.py install
+\end{shell}
+
+\begin{package}
+MacPorts: py26-yaml
+deb:   python-yaml
+\end{package}
+
+At least on OS X you also need to specify the PYTHONPATH:
+
+\begin{shell}
+export PYTHONPATH="\
+/opt/local/Library/Frameworks/Python.framework/Versions/2.6\
+/lib/python2.6/site-packages:$PYTHONPATH"
+\end{shell}
+\end{description}
+
+\subsection{Build}
+
+\begin{description}
+\item[bc]
+  Needed by the test suite.
+\begin{package}
+package: bc
+\end{package}
+
+\item[Boost 1.38 or later] Don't try to build it yourself, ask your
+  distribution's management to install it.
+\begin{package}
+deb: libboost-dev
+MacPorts: boost
+windows: http://www.boostpro.com/download
+\end{package}
+
+\item[Ccache]
+  Not a requirement, but it's better to have it.
+\begin{package}
+package: ccache
+\end{package}
+
+\item[Flex 2.5.35 or later]
+  Beware that 2.5.33 has bugs than prevents this package from building
+  correctly.
+\begin{package}
+package: flex
+\end{package}
+
+\item[G++ 4.0 or later] GCC 4.2 or later is a better option.  Beware that we
+  have a problem with GCC-4.4 which rejects some Bison generated code.  See
+  \autoref{sec:faq:build:uninitialized}.
+\begin{package}
+deb: g++-4.2
+MacPorts: gcc42
+\end{package}
+
+\item[Gnuplot]
+  Required to generate charts of trajectories for the documentation.
+\begin{package}
+package: gnuplot
+\end{package}
+
+\item[GraphViz] Used to generate some of the figures in the
+  documentation.  There is no GraphViz package for Cygwin, so download
+  the MSI file from GraphViz' site, and install it.  Then change your
+  path to go into its bin directory.
+
+\begin{shell}
+wget http://www.graphviz.org/pub/graphviz/stable/windows/graphviz-2.26.msi
+PATH=/cygdrive/c/Program\ Files/Graphviz2.26/bin:$PATH
+\end{shell}
+
+\begin{package}
+package: graphviz
+\end{package}
+
+\item[ImageMagick] Used to convert some of the figures in the
+  documentation.
+\begin{package}
+MacPorts: ImageMagick
+deb: imagemagick
+\end{package}
+
+\item[PDFLaTeX] TeX Live is the most common \TeX{} distribution nowadays.
+\begin{package}
+deb: texlive-base texlive-latex-extra
+MacPorts: texlive texlive-latex-extra texlive-htmlxml
+\end{package}
+
+\item[py-docutils] This is not a requirement, but it's better to have
+  it.  Used by the test suite.  Unfortunately the name of the package
+  varies between distributions.  It provides \command{rst2html}.
+
+\begin{package}
+MacPorts: py26-docutils
+\end{package}
+
+\item[socat] Needed by the test suite to send messages to an \urbi server.
+\begin{package}
+package: socat
+\end{package}
+
+\item[TeX4HT] Used to generate the HTML documentation.
+\begin{package}
+deb: tex4ht
+MacPorts: texlive_texmf-full
+\end{package}
+
+\item[Transfig] Needed to convert some figures for documentation
+  (using fig2dev).
+\begin{package}
+package: transfig
+\end{package}
+
+\item[Valgrind] Not needed, but if present, used by the test suite.
+\begin{package}
+package: valgrind
+\end{package}
+
+\item[xsltproc] This is not a requirement, but it's better to have it.
+\end{description}
+
+\section{Check out}
+
+Get the open source version tarball from
+\url{http://www.urbiforge.com/index.php/Main/Downloads} and uncompress it.
+With this version, the bootstrap step can be skipped.
+
+\section{Bootstrap}
+Run
+
+\begin{shell}
+$ ./bootstrap
+\end{shell}
+
+\section{Configure}
+You should compile in another directory than the one containing the sources.
+
+\begin{shell}
+$ mkdir _build
+$ cd _build
+$ ../configure OPTIONS...
+\end{shell}
+
+\subsection{configuration options}
+See \samp{../configure --help} for detailed information.  Unless you
+want to do funky stuff, you probably need no option.
+
+To use ccache, pass \samp{CC='ccache gcc' CXX='ccache g++'} as
+arguments to configure:
+
+\begin{shell}
+$ ../configure CC='ccache gcc' CXX='ccache g++' ...
+\end{shell}
+
+\subsection{Windows: Cygwin}
+The builds for windows use our wrappers.  These wrappers use a
+database to store the dependencies (actually, to speed up their
+computation).  We use Perl, and its DBI module.  So be sort to have
+sqlite, and DBI.
+
+\begin{shell}
+$ perl -MCPAN -e 'install Bundle::DBI'
+\end{shell}
+
+It might fail.  The most important part is
+
+\begin{shell}
+$ perl -MCPAN -e 'install DBD::SQLite'
+\end{shell}
+
+It might suffice, I don't know...
+
+\subsection{building For Windows}
+
+We support two builds: using Wine on top of Unix, and using Cygwin on
+top of Windows.
+
+Both builds use our wrappers around MSVC's cl.exe and link.exe.  It
+is still unclear whether it was a good or a bad idea, but the wrappers
+use the same names.  Yet libtool will also need to use the genuine
+link.exe.  So to set up Libtool properly, you will need to pass the
+following as argument to configure:
+
+\begin{shell}
+$ AR=lib.exe                                                    \
+  CC='ccache cl.exe'                                            \
+  CC_FOR_BUILD=gcc                                              \
+  CXX='ccache cl.exe'                                           \
+  LD=link.exe                                                   \
+  DUMPBIN='/cygdrive/c/vcxx8/VC/bin/link.exe -dump -symbols'    \
+  RANLIB=:                                                      \
+  host_alias=mingw32                                            \
+  --host=mingw32
+\end{shell}
+
+where:
+\begin{itemize}
+\item \file{lib.exe}, \file{cl.exe}, \file{link.exe} are the wrappers
+\item \file{/cygdrive/c/vcxx8/VC/bin/link.exe} is the genuine MSVC
+  tool.
+\end{itemize}
+
+Since we are cross-compiling, we also need to specify
+\env{CC\_FOR\_BUILD} so that \command{config.guess} can properly guess
+the type of the build machine.
+
+\subsection{Building for Windows using Cygwin}
+
+We use our cl.exe wrappers, which is something that Libtool cannot
+know.  So we need to tell it that we are on Windows with Cygwin, and
+pretend we use GCC, so we pretend we run mingw.
+
+The following options have been used with success to compile \usdk
+with Visual C++ 2005.  Adjust to your own case (in particular the
+location of Boost).
+
+\begin{shell}
+$ ../configure                                                  \
+  -C                                                            \
+  --prefix=/usr/local/gostai                                    \
+  --enable-compilation-mode=debug                               \
+  --enable-shared                                               \
+  --disable-static                                              \
+  --enable-dependency-tracking                                  \
+  --with-boost=/cygdrive/c/gt-win32-2/d/boost_1_39              \
+  AR=lib.exe                                                    \
+  CC='ccache cl.exe'                                            \
+  CC_FOR_BUILD=gcc                                              \
+  CXX='ccache cl.exe'                                           \
+  LD=link.exe                                                   \
+  DUMPBIN='/cygdrive/c/vcxx8/VC/bin/link.exe -dump -symbols'    \
+  RANLIB=:                                                      \
+  host_alias=mingw32                                            \
+  --host=mingw32
+\end{shell}
+
+%%% FIXME: Obsolete I think.
+%%%
+%%% For some reason, the building of \file{libuobject.dll} will fail.
+%%% You need to remove the reference to \file{libltld.la} from the
+%%% libtool invocation.  This will be simplified later.
+
+\section{Compile}
+Should be straightforward.
+
+\begin{shell}
+$ make -j3
+\end{shell}
+
+Using \command{distcc} and \command{ccache} is recommended.
+
+\section{Install}
+
+Running \samp{make install} works as expected.  It is a good idea to check
+that your installation works properly: run \samp{make installcheck} (see
+\autoref{sec:build:check}).
+
+
+\section{Relocatable}
+
+If you intend to make a relocatable tree of \usdk (i.e., a self-contained
+tree that can be moved around), then run \samp{make relocatable} after
+\samp{make install}.
+
+This step \emph{requires} that you use a DESTDIR (see the Automake
+documentation for more information).  Basically, the sequence of commands
+should look like:
+
+\begin{shell}
+$ DESTDIR=/tmp/install
+$ rm -rf $DESTDIR
+$ make install DESTDIR=$DESTDIR
+$ make relocatable DESTDIR=$DESTDIR
+$ make installcheck DESTDIR=$DESTDIR
+\end{shell}
+
+You may now move this tree around and expect the executable to work
+properly.
+
+\section{Run}
+
+There are some special variables in addition to the environment
+variables documented in the manual.
+
+\begin{envs}
+\item[URBI\_CONSOLE\_MODE] Skip lines in input that look like shell
+  output.  A way to accept *.chk as input.
+
+\item[URBI\_DESUGAR] Display the desugared ASTs instead of the
+  original one.
+
+\item[URBI\_IGNORE\_URBI\_U] Ignore failures (such as differences between
+  kernel revision and \file{urbi.u} revision) during the initialization.
+
+\item[URBI\_INTERACTIVE] Force the interactive mode, as if
+  \option{--interactive} was passed.
+
+\item[URBI\_LAUNCH] The path to \command{urbi-launch} that
+  \command{urbi.exe} will exec.
+
+\item[URBI\_NO\_ICE\_CATCHER] Don't try to catch SEGVs.
+
+\item[URBI\_PARSER] Enable Bison parser traces.
+
+\item[URBI\_REPORT] Display stats about execution rounds performed by
+  the kernel.
+
+\item[URBI\_ROOT\_LIB\var{name}] The location of the libraries to load,
+  without the extension.  The \code{LIB\var{name}} are: LIBJPEG4URBI,
+  LIBPLUGIN (libuobject plugin), LIBPORT, LIBREMOTE (libuobject remote),
+  LIBSCHED, LIBSERIALIZE, LIBURBI.
+
+\item[URBI\_SCANNER] Enable Flex scanner traces.
+
+\item[URBI\_TOPLEVEL] Force the display the result of the top-level
+  evaluation into the lobby.
+\end{envs}
+
+\section{Check}
+\label{sec:build:check}
+There are several test suites that will be run if you run \samp{make
+  check} (\samp{-j4} works on most machines).
+
+To rerun only the tests that failed, use \samp{make recheck}.  Some tests
+have explicit dependencies, and they are not rerun if nothing was changed
+(unless they had failed the previous time).  It is therefore expected that
+after one (long) run of \samp{make check}, the second one will be
+``instantaneous'': the previous log files are reused.
+
+Note that running \samp{make} in the top-level is needed when you change
+something deep in the package.  If you forget this \samp{make} run, the
+timestamps on which the test suite depends will not be updated, and
+therefore the results of the previous state of the package will be used,
+instead of your fresh changes.
+
+Some tests are extremely ``touchy''.  Because the test suite exercises \urbi
+under extreme conditions, some tests may fail not because of a problem in
+\urbi, but because of non-determinism in the test itself.  In this case,
+another run of \samp{make check} will give an opportunity for the test to
+pass (remind that the tests that passed will not be run again).  Also, using
+\samp{make check -j16} is a sure means to have the \urbi scheduler behave
+insufficiently well for the test to pass.  \strong{Do not send bug reports
+  for such failures.}.  Before reporting bugs, make sure that the failures
+remain after a few \samp{make check -j1} invocations.
+
+
+\subsection{Lazy test suites}
+The test suites are declared as ``lazy'', i.e., unless its
+dependencies changed, a successful test will be run only once ---
+failing tests do not ``cache'' their results.  Because spelling out
+the dependencies is painful, we rely on a few timestamps:
+
+\begin{files}
+\item[libraries.stamp] Updated when a library is updated (libport,
+  libuobject, etc.).
+
+\item[executables.stamp] Updated when an executable is updated
+  (\command{urbi-launch}, etc.).  Depends on libraries.stamp.
+
+\item[urbi.stamp] When \urbi sources (\file{share/urbi/*.u}) are updated.
+
+\item[all.stamp] Updated when any of the three aforementioned
+  timestamps is.
+\end{files}
+
+These timestamps are updated \strong{only} when \command{make} is run
+in the top-level.  Therefore, the following sequence does not work as
+expected:
+
+\begin{shell}
+$ make check -C tests     # All passes.
+$ emacs share/urbi/foo.u
+$ make check -C tests     # All passes again.
+\end{shell}
+
+\noindent
+because the timestamps were not given a chance to notice that some
+\urbi source changed, so Make did not notice the tests really needed to
+be rerun and \strong{the tests were not run}.
+
+You may either just update the timestamps:
+
+\begin{shell}
+$ make check -C tests     # All passes.
+$ emacs share/urbi/foo.u
+$ make stamps             # Update the timestamps.
+$ make check -C tests     # All passes again.
+\end{shell}
+
+or completely disable the test suite laziness:
+
+\begin{shell}
+$ make check -C tests LAZY_TEST_SUITE=
+\end{shell}
+
+\subsection{Partial test suite runs}
+You can run each test suite individually by hand as follows:
+\begin{files}
+\item[sdk-remote/libport/test-suite.log] Tests libport.
+\begin{shell}
+$ make check -C sdk-remote/libport
+\end{shell}
+
+\item[sdk-remote/src/tests/test-suite.log]
+Checks liburbi, and some of the executables we ship.  Requires the
+kernel to be compiled in order to be able to test some of the uobjects.
+
+\begin{shell}
+$ make check -C sdk-remote/src/tests
+\end{shell}
+
+\item[tests/test-suite.log]
+Tests the kernel and uobjects.
+\begin{shell}
+$ make check -C tests
+\end{shell}
+
+\noindent
+Partial runs can be invoked:
+
+\begin{shell}
+$ make check -C tests TESTS='2.x/echo.chk'
+\end{shell}
+
+\noindent
+wildcards are supported:
+
+\begin{shell}
+$ make check -C tests TESTS='2.x/*'
+\end{shell}
+
+\noindent
+To check remote uobjects tests:
+
+\begin{shell}
+$ make check -C tests TESTS='uob/remote/*'
+\end{shell}
+
+\item[doc/tests/test-suite.log] The snippets of code displayed in the
+  documentation are transformed into test files.
+\begin{shell}
+$ make check -C doc
+\end{shell}
+\end{files}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../urbi-sdk"
+%%% ispell-dictionary: "american"
+%%% ispell-personal-dictionary: "../urbi.dict"
+%%% fill-column: 76
+%%% End:

@@ -1,0 +1,131 @@
+%% Copyright (C) 2009-2010, Gostai S.A.S.
+%%
+%% This software is provided "as is" without warranty of any kind,
+%% either expressed or implied, including but not limited to the
+%% implied warranties of fitness for a particular purpose.
+%%
+%% See the LICENSE file for more information.
+
+\section{Date}
+
+This class is meant to record dates in time, with microsecond resolution.
+\experimental{}
+
+\subsection{Prototypes}
+\begin{refObjects}
+\item[Orderable]
+\item[Comparable]
+\end{refObjects}
+
+\subsection{Construction}
+
+Without argument, newly constructed Dates refer to the current date.
+
+\begin{urbiunchecked}[firstnumber=1]
+Date.new;
+[00000001] 2010-08-17 14:40:52.549726
+\end{urbiunchecked}
+
+With a string argument \var{d}, refers to the date contained in \var{d}.
+The string should be formatted as \samp{\var{yyyy}-\var{mm}-\var{dd}
+    \var{hh}:\var{mn}:\var{ss}} (see \refSlot{asString}). \var{mn}
+and \var{ss} are optional. If the block \samp{\var{hh}:\var{mn}:\var{ss}}
+is absent, the behavior is undefined.
+
+
+\begin{urbiscript}
+Date.new("2003-10-10 20:10:50");
+[00000001] 2003-10-10 20:10:50
+
+Date.new("2003-Oct-10 20:10");
+[00000002] 2003-10-10 20:10:00
+
+Date.new("2003-10-10 20");
+[00000003] 2003-10-10 20:00:00
+\end{urbiscript}
+
+\subsection{Slots}
+
+\begin{urbiscriptapi}
+\item['+'](<that>)%
+  The date which corresponds to waiting \refObject{Duration} \var{that}
+  after \this.
+\begin{urbiassert}
+Date.new("2010-08-17 12:00") + 60s == Date.new("2010-08-17 12:01");
+\end{urbiassert}
+
+\item['-'](<that>)%
+  If \var{that} is a Date, the difference between \this and \var{that} as a
+  \refObject{Duration}.
+\begin{urbiassert}
+Date.new("2010-08-17 12:01") - Date.new("2010-08-17 12:00") ==  60s;
+Date.new("2010-08-17 12:00") - Date.new("2010-08-17 12:01") == -60s;
+\end{urbiassert}
+
+If \var{that} is a Duration or a Float, the corresponding Date.
+
+\begin{urbiassert}
+Date.new("2010-08-17 12:01") - 60s == Date.new("2010-08-17 12:00");
+Date.new("2010-08-17 12:01") - 60s
+  == Date.new("2010-08-17 12:01") - Duration.new(60s);
+\end{urbiassert}
+
+\item['=='](<that>)%
+  Equality test.
+\begin{urbiassert}
+Date.new("2010-08-17 12:00") == Date.new("2010-08-17 12:00");
+Date.new("2010-08-17 12:00") != Date.new("2010-08-17 12:01");
+\end{urbiassert}
+
+\item['<'](<that>)%
+  Order comparison.
+\begin{urbiassert}
+   Date.new("2010-08-17 12:00") < Date.new("2010-08-17 12:01");
+! (Date.new("2010-08-17 12:01") < Date.new("2010-08-17 12:00"));
+\end{urbiassert}
+
+\item[asFloat] The duration since the \refSlot{epoch}, as a Float.
+\begin{urbiscript}
+var d = Date.new("2002-01-20 23:59:59")|;
+assert
+{
+  d.asFloat == d - d.epoch;
+  d.asFloat.isA(Float);
+};
+\end{urbiscript}
+
+\item[asString] Present as \samp{\var{yyyy}-\var{mm}-\var{dd}
+    \var{hh}:\var{mn}:\var{ss}.\var{us}} where \var{yyyy} is the four-digit
+  year, \var{mm} the three letters name of the month (Jan, Feb, ...),
+  \var{dd} the two-digit day in the month (from 1 to 31), \var{hh} the
+  two-digit hour (from 0 to 23), \var{mn} the two-digit number of minutes in
+  the hour (from 0 to 59), and \var{ss} the two-digit number of seconds in
+  the minute (from 0 to 59).
+\begin{urbiassert}
+Date.new("2009-02-14 00:31:30").asString == "2009-02-14 00:31:30";
+\end{urbiassert}
+
+\item[epoch]
+  A fixed value, the ``origin of times'': January 1st 1970, at
+  midnight.
+\begin{urbiunchecked}
+Date.epoch == Date.new("1970-01-01 00:00");
+\end{urbiunchecked}
+
+\item[now] The current date. Equivalent to Date.new.
+\begin{urbiunchecked}
+Date.now;
+[00000000] 2012-03-02 15:31:42
+\end{urbiunchecked}
+
+\item[timestamp] Synonym for \refSlot{asFloat}.
+\end{urbiscriptapi}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../urbi-sdk"
+%%% ispell-dictionary: "american"
+%%% ispell-personal-dictionary: "../urbi.dict"
+%%% fill-column: 76
+%%% End:

@@ -1,0 +1,5 @@
+// This is, of course, not supposed to crash
+function bam { call.args[0].value } |;
+bam(function (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z) {  }) |;
+echo ("We're done here");
+[00000001] *** We're done here

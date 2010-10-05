@@ -1,0 +1,11 @@
+var t = Tag.new|
+var e = Event.new|;
+t: at(e?) wall("coin");
+e!;
+[00000001] *** coin
+// No reason for async emit and the wall to occurr 'instantl': wait a bit.
+sleep(100ms);
+t.stop;
+e!;
+1;
+[00000002] 1

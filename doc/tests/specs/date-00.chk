@@ -1,0 +1,68 @@
+syncline << "doc/specs/date.tex:37";
+[01234567:syncline] "doc/specs/date.tex:37"
+//#line 37 "doc/specs/date.tex"
+Date.new("2003-10-10 20:10:50");
+[00000001] 2003-10-10 20:10:50
+
+Date.new("2003-Oct-10 20:10");
+[00000002] 2003-10-10 20:10:00
+
+Date.new("2003-10-10 20");
+[00000003] 2003-10-10 20:00:00
+
+syncline << "doc/specs/date.tex:54";
+[01234567:syncline] "doc/specs/date.tex:54"
+//#line 54 "doc/specs/date.tex"
+assert {
+Date.new("2010-08-17 12:00") + 60s == Date.new("2010-08-17 12:01");
+};
+
+syncline << "doc/specs/date.tex:61";
+[01234567:syncline] "doc/specs/date.tex:61"
+//#line 61 "doc/specs/date.tex"
+assert {
+Date.new("2010-08-17 12:01") - Date.new("2010-08-17 12:00") ==  60s;
+Date.new("2010-08-17 12:00") - Date.new("2010-08-17 12:01") == -60s;
+};
+
+syncline << "doc/specs/date.tex:68";
+[01234567:syncline] "doc/specs/date.tex:68"
+//#line 68 "doc/specs/date.tex"
+assert {
+Date.new("2010-08-17 12:01") - 60s == Date.new("2010-08-17 12:00");
+Date.new("2010-08-17 12:01") - 60s
+  == Date.new("2010-08-17 12:01") - Duration.new(60s);
+};
+
+syncline << "doc/specs/date.tex:76";
+[01234567:syncline] "doc/specs/date.tex:76"
+//#line 76 "doc/specs/date.tex"
+assert {
+Date.new("2010-08-17 12:00") == Date.new("2010-08-17 12:00");
+Date.new("2010-08-17 12:00") != Date.new("2010-08-17 12:01");
+};
+
+syncline << "doc/specs/date.tex:83";
+[01234567:syncline] "doc/specs/date.tex:83"
+//#line 83 "doc/specs/date.tex"
+assert {
+   Date.new("2010-08-17 12:00") < Date.new("2010-08-17 12:01");
+! (Date.new("2010-08-17 12:01") < Date.new("2010-08-17 12:00"));
+};
+
+syncline << "doc/specs/date.tex:89";
+[01234567:syncline] "doc/specs/date.tex:89"
+//#line 89 "doc/specs/date.tex"
+var d = Date.new("2002-01-20 23:59:59")|;
+assert
+{
+  d.asFloat == d - d.epoch;
+  d.asFloat.isA(Float);
+};
+
+syncline << "doc/specs/date.tex:105";
+[01234567:syncline] "doc/specs/date.tex:105"
+//#line 105 "doc/specs/date.tex"
+assert {
+Date.new("2009-02-14 00:31:30").asString == "2009-02-14 00:31:30";
+};

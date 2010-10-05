@@ -1,0 +1,553 @@
+#! /usr/bin/perl -w
+
+# TODO.
+#
+# This file has gone through many different approaches, and there are
+# remains that need to be cleaned.
+#
+# 1. Clearly have two run modes: one to create/update .version from
+# git, if possible.  Should be lazy: don't update if no changes.
+#
+# 2. One that creates the output files, only from .version, and not
+# even trying to run git.  Don't be lazy, always override, to avoid
+# having to deal with time stamp files.  It is simple to use make to
+# update output files from .version, which is lazy.
+
+=head1 NAME
+
+git-version-gen - Generate and cache "git describe" data
+
+=head1 SYNOPSIS
+
+git-version-gen [OPTIONS...]
+
+=head1 DESCRIPTION
+
+Generate timestamp files related to Git metadata.  Support a cache
+system so that we don't recompile the world each time something is
+checked in.  Bear in mind that a change in libport, for instance, can
+result in numerous relinking, which is extremely costly.
+
+=head1 OPTIONS
+
+General options:
+
+=over 4
+
+=item B<-c>, B<--cache>=I<cache>
+
+Use I<cache> as cache file.  Defaults to I<srcdir/.version>.  The
+cache is only read by default.  It is created/updated only when B<-U>,
+B<--update> is specified.
+
+=item B<-h>, B<--help>
+
+display this message and exit.
+
+=item B<-n>, B<--no-eol>
+
+do not output the trailing newline.
+
+=item B<-o>, B<--output>=I<file>
+
+File to create; the parent directory is created if needed.  Defaults
+to stdout.
+
+=item B<-p>, B<--prefix>=I<id>
+
+Prefix to use for the CPP guards.  For instance I<LIBPORT_>.  Defaults
+to I<PACKAGE_>.
+
+=item B<-q>, B<--quiet>
+
+Be less verbose.  Accumulates.
+
+=item B<-s>, B<--srcdir>=I<dir>
+
+location of the top srcdir.  Used to locate the Git repository if in
+use.  Defaults to the directory containing the I<cache> file if
+defined, otherwise I<.>.
+
+=item B<-U>, B<--update>
+
+Update/create the cache file if Git appears to provide more recent
+information.
+
+=item B<-v>, B<--verbose>
+
+Be more verbose.  Accumulates.
+
+=back
+
+Output Formats:
+
+=over 4
+
+=item B<-H>, B<--header>
+
+output as a header file suitable for C/C++.
+
+=item B<-f>, B<--file>
+
+output a string suitable as a file name.
+Converts slashes to dashes.
+
+=item B<-l>, B<--latex>
+
+Generate LaTeX.
+
+=item B<-r>, B<--raw>
+
+output the raw result [default].
+
+=item B<-u>, B<--urbiscript>
+
+output as an urbiscript file.
+
+=back
+
+See build-aux/package-version.txt for more information.
+
+=cut
+
+BEGIN
+{
+  use File::Basename;
+  unshift @INC, dirname($0) . '/../perl';
+}
+
+use BuildAux::FileUtils;
+use BuildAux::Utils;
+use BuildAux::Verbose;
+use BuildAux::XFile;
+use File::Basename;
+use strict;
+
+
+# The file that maintains a copy of the current version.
+my $cache;
+
+# Output format.
+my $format = 'raw';
+
+# Whether we strip the trailing \n (to please m4_syscmd which does not
+# strip it).
+my $no_eol = 0;
+
+my $output;
+
+# CPP guard prefix.
+my $prefix = 'PACKAGE_';
+
+# Where the Git repo is (if it exists).
+my $srcdir = undef;
+
+# Whether we have write access to the cache.
+my $update = 0;
+
+=head1 FUNCTIONS
+
+=over 4
+
+=item C<caml_score($str)>
+
+Insert an underscore between lower case and upper case letters.
+For instance C<FooBarBaz> gives C<Foo_Bar_Baz>.
+
+=cut
+
+sub caml_score($)
+{
+  my ($str) = @_;
+  $str =~ s/(?<=[[:lower:]])(?=[[:upper:]])/_/g;
+  $str;
+}
+
+
+=item C<%comment>
+
+The comment associated to a given revision field.
+
+=cut
+
+my %comment =
+  (
+   Date           => 'The SCM date string',
+   Day            => 'The day part of the SCM date string',
+   Description    => 'The SCM complete description string, with slashes',
+   Id             => 'The SCM identification string',
+   Patch          => 'The number of changes since the Version',
+   Revision       => 'The SCM revision string',
+   TarballVersion => 'The SCM complete version string, with dashes',
+   Version        => 'The SCM version string',
+   VersionRev     => 'Version and revision together',
+  );
+
+
+######################################################################
+
+=item C<getopt()>
+
+Process the command line arguments.
+
+=cut
+
+sub getopt ()
+{
+  use BuildAux::Getopt qw($message);
+  $message = "Generate and cache \"git describe\" data";
+  BuildAux::Getopt::getopt
+    (
+     "c|cache=s"     => \$cache,
+     "f|file"        => sub { $format = 'file' },
+     "l|latex"       => sub { $format = 'latex' },
+     "H|header"      => sub { $format = 'header' },
+     "n|no-eol"      => sub { $no_eol = 1 },
+     "o|output=s"    => \$output,
+     "p|prefix=s"    => \$prefix,
+     "r|raw"         => sub { $format = 'raw' },
+     "s|srcdir=s"    => \$srcdir,
+     "U|update"      => \$update,
+     "u|urbiscript"  => sub { $format = 'urbiscript' },
+    );
+}
+
+######################################################################
+
+=item C<git(@command)>
+
+Run C<git @command>.  Expects C<$command[0]> to be a Git command,
+e.g., "describe".
+
+=cut
+
+sub git
+{
+  my ($verb) = $_[0];
+  my $error = "$0: failed command: git @_";
+  $error .= "\n$0: A tag is needed for `git describe' to succeed.\n"
+    . "$0: Something like `git tag -a Initial'\n"
+    if $verb eq "describe";
+  my $res = `git --git-dir=$srcdir/.git @_`
+    or die $error;
+  chomp $res;
+  return $res;
+}
+
+######################################################################
+
+=item C<fetch_keywords>
+
+If we are in a git repository, ask it for the various meta-data we
+need, and update the cache file.  If we are not, read the cache file.
+
+In both case, return the keywords as a hash.
+
+=cut
+
+sub fetch_keywords ()
+{
+  # Date -> $date and so forth.
+  my %res;
+  # Are we in a git repository?
+  if (-d "$srcdir/.git")
+  {
+    verbose 2, "in a Git repository";
+
+    # Date, Revision, and Id.
+    my $log = git 'log', '-1',
+      '--pretty="format:Date: %ai%nId: %h (%ai %ae: %s)%nRevision: %h%n"';
+    $log =~ s{^(\w+):\s*(.*)$}{ $res{$1} = $2; ''; }emg;
+
+    # Day.
+    ($res{Day} = $res{Date}) =~
+      s{^(\d{4})-(\d{2})-(\d{2}).*}
+    {
+      my ($y, $m, $d) = ($1, $2, $3);
+      my @month = qw(January February March April May June
+                     July August September October November December);
+      $d =~ s/^0//;
+      $month[$m - 1] . " $d, $y";
+    }e;
+
+    # "preview/1.6/beta-1-747-g6cb67e3".
+    $res{Description} = git 'describe';
+
+    # "preview/1.6/beta-1".
+    ($res{Version} = $res{Description}) =~ s/^(.*)-(\d+)-g[\da-f]+$/$1/;
+
+    # "preview-1.6-beta-1-747-g6cb67e3".
+    ($res{TarballVersion} = $res{Description}) =~ s,/,-,g;
+
+    # "747".
+    $res{Patch} =
+      ($res{Description} =~ m{^(.*)-(\d+)-g[\da-f]+$}
+       ? $2 : 0);
+
+    # "preview/1.6/beta-1 patch 747 revision 6cb67e3".
+    $res{VersionRev} =
+      "version $res{Version} patch $res{Patch} revision $res{Revision}";
+
+    # Cache the result, only if needed.
+    file_update($cache,
+                join('', map {"$_: $res{$_}\n"} sort keys %res))
+      if $update || ! -f $cache;
+  }
+  else
+  {
+    verbose 2, "not in a Git repository: no $srcdir/.git";
+    my $in = new BuildAux::XFile $cache;
+    while ($_ = $in->getline)
+    {
+      s{(\w+):\s*(.*)}{ $res{$1} = $2; ''; }e;
+    }
+  }
+  verbose 3, map { "$_: $res{$_}" } sort keys %res;
+  return %res;
+}
+
+=item C<format_keywords(&formatter, %keyword)>
+
+Return a string that contains the definition for each revision
+keyword.  Invoke C<&formatter($key, $value)> to generate each entry
+from C<%keyword>.
+
+=cut
+
+sub format_keywords (\&\%)
+{
+  my ($routine, $keyword) = @_;
+  join ("\n\n",
+        map { &$routine($_, ${$keyword}{$_}) }
+        (sort keys %{$keyword}));
+}
+
+=item C<escape(\%hashref)>
+
+Escape the values of C<%hashref> for C string syntax.
+
+=cut
+
+sub escape(\%)
+{
+  my ($hash) = @_;
+  map { s/[\\\"]/\\$&/g; } values %$hash;
+}
+
+=item C<latex_escape(\%hashref)>
+
+Escape the values of C<%hashref> for TeX string syntax.
+
+=cut
+
+sub latex_escape(\%)
+{
+   my ($hash) = @_;
+   map
+   {
+     s/\\/\\textbackslash/g;
+     s/[\$\%\{\}\#]/\\$&/g;
+   }
+   values %$hash;
+}
+
+=item C<generate_file(%keyword)>
+
+Return as file name.
+
+=cut
+
+sub generate_file(%)
+{
+  my $res = generate_raw(@_);
+  $res =~ s,/,-,g;
+  return $res;
+}
+
+=item C<generate_header_entry($key, $value)>
+
+Generate the C/C++ preprocessor definition for C<$key>/C<$value>.
+
+=cut
+
+sub generate_header_entry($$)
+{
+  my ($keyword, $value) = @_;
+  my $entry = "${prefix}" . uc caml_score $keyword;
+
+  "// $comment{$keyword}.
+# define $entry \\
+  \"$value\"";
+}
+
+=item C<generate_header(%keyword)>
+
+Generate a C/C++ header.
+
+=cut
+
+sub generate_header(%)
+{
+  my (%keyword) = @_;
+  my $guard = uc $output;
+  $guard =~ s/\W/_/g;
+  escape %keyword;
+
+  <<EOF;
+@{[license('c')]}
+#ifndef $guard
+# define $guard
+
+// Override ${prefix}VERSION from config.h.
+# ifdef ${prefix}VERSION
+#  undef ${prefix}VERSION
+# endif
+
+@{[format_keywords(&generate_header_entry, %keyword)]}
+
+#endif // !$guard
+EOF
+}
+
+=item C<generate_raw(%keyword)>
+
+Return the raw output from git-describe.
+
+=cut
+
+sub generate_raw(%)
+{
+  my (%keyword) = @_;
+  my $res = $keyword{Description};
+  $res .= "\n"
+    unless $no_eol;
+  return $res;
+}
+
+=item C<generate_latex_entry($key, $value)>
+
+Generate the LaTeX definition for C<$key>/C<$value>.
+
+=cut
+
+sub generate_latex_entry($$)
+{
+  my ($keyword, $value) = @_;
+  "%% $comment{$keyword}.
+\\newcommand{\\Vcs$keyword}{%
+  $value%
+  \\xspace%
+}";
+}
+
+=item C<generate_latex(%keyword)>
+
+Generate a LaTeX file.
+
+=cut
+
+sub generate_latex(%)
+{
+  my (%keyword) = @_;
+  latex_escape %keyword;
+
+  <<EOF;
+@{[license('tex')]}
+@{[format_keywords(&generate_latex_entry, %keyword)]}
+EOF
+}
+
+=item C<generate_urbiscript_entry($key, $value)>
+
+Generate the urbiscript definition for C<$key>/C<$value>.
+
+=cut
+
+sub generate_urbiscript_entry($$)
+{
+  my ($keyword, $value) = @_;
+  my $entry = lcfirst $keyword;
+  "  // $comment{$keyword}.
+  var $entry =
+    \"$value\";";
+}
+
+=item C<generate_urbiscript(%keyword)>
+
+Generate an urbiscript file.
+
+=cut
+
+sub generate_urbiscript(%)
+{
+  my (%keyword) = @_;
+  escape %keyword;
+
+  <<EOF;
+@{[license('c')]}
+do (System.PackageInfo.new(\"$prefix\"))
+{
+@{[format_keywords(&generate_urbiscript_entry, %keyword)]}
+};
+EOF
+}
+
+=item C<generate($format, %keyword)>
+
+Generate the result for C<$format>.
+
+=cut
+
+sub generate($%)
+{
+  my ($format, %keyword) = @_;
+  my %converter =
+    (
+     file       => \&generate_file,
+     latex      => \&generate_latex,
+     header     => \&generate_header,
+     raw        => \&generate_raw,
+     urbiscript => \&generate_urbiscript,
+    );
+  return $converter{$format}->(%keyword);
+}
+
+######################################################################
+
+## ------ ##
+## Main.  ##
+## ------ ##
+
+getopt;
+# Compute $cache and $srcdir.
+$srcdir = $cache ? dirname $cache : '.'
+  unless defined $srcdir;
+$cache = "$srcdir/.version"
+  unless $cache;
+
+# Looks for the SCM keywords.
+my %keyword = fetch_keywords;
+
+# Compute the main result.
+my $res = generate($format, %keyword);
+
+# Save the result.
+file_update $output, $res
+  if $res;
+
+### Setup "Gostai" style for perl-mode and cperl-mode.
+## Local Variables:
+## perl-indent-level: 2
+## perl-continued-statement-offset: 2
+## perl-continued-brace-offset: -2
+## perl-brace-offset: 0
+## perl-brace-imaginary-offset: 0
+## perl-label-offset: -2
+## cperl-indent-level: 2
+## cperl-brace-offset: 0
+## cperl-continued-brace-offset: -2
+## cperl-label-offset: -2
+## cperl-extra-newline-before-brace: t
+## cperl-merge-trailing-else: nil
+## cperl-continued-statement-offset: 2
+## End:

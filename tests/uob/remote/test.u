@@ -1,0 +1,38 @@
+/*
+ * Copyright (C) 2010, Gostai S.A.S.
+ *
+ * This software is provided "as is" without warranty of any kind,
+ * either expressed or implied, including but not limited to the
+ * implied warranties of fitness for a particular purpose.
+ *
+ * See the LICENSE file for more information.
+ */
+
+// Wait for the remote UObjects of \a files to appear.
+function waitForRemoteUObjects (var files)
+{
+  // Open-coded list of names under which the plugins appear in the
+  // Urbi world.  This is not nice, but we need a robust means to wait
+  // for them to be available.
+  var uobjects =
+    [
+      "urbi/all"      => ["remall", "remall2"],
+      "urbi/factory"  => ["UFactory"],
+      "urbi/generic"  => ["generic"],
+      "urbi/lib-urbi" => ["liburbi"],
+      "urbi/remote"   => ["remote"],
+      "urbi/rtp"      => [], // Renames itself.
+      "urbi/threaded" => ["Threaded"],
+      "urbi/timer"    => ["timer"],
+      "urbi/uchange"  => ["uchange"],
+      "urbi/uengine"  => ["UEngine"],
+      "urbi/ultest"   => ["ultest"],
+    ];
+
+  for (var file: files)
+    for (var uo: uobjects[file])
+      // FIXME: does not work:     waituntil(uobjects.hasSlot(uo));
+      while(!uobjects.hasSlot(uo))
+       {};
+}|;
+

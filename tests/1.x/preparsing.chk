@@ -1,0 +1,2 @@
+if (1) { echo("toto" };
+[00000001:error] !!! input.u:1.22: syntax error: unexpected }

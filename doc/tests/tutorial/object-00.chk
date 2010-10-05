@@ -1,0 +1,34 @@
+syncline << "doc/tutorial/object.tex:40";
+[01234567:syncline] "doc/tutorial/object.tex:40"
+//#line 40 "doc/tutorial/object.tex"
+Pair;
+[00000000] (nil, nil)
+
+syncline << "doc/tutorial/object.tex:50";
+[01234567:syncline] "doc/tutorial/object.tex:50"
+//#line 50 "doc/tutorial/object.tex"
+var p = Pair.clone;
+[00000000] (nil, nil)
+p.first = "101010";
+[00000000] "101010"
+p.second = true;
+[00000000] true
+p;
+[00000000] ("101010", true)
+Pair;
+[00000000] (nil, nil)
+
+syncline << "doc/tutorial/object.tex:67";
+[01234567:syncline] "doc/tutorial/object.tex:67"
+//#line 67 "doc/tutorial/object.tex"
+var before = Pair.clone;
+[00000000] (nil, nil)
+Pair.first = false;
+[00000000] false
+var after = Pair.clone;
+[00000000] (false, nil)
+before;
+[00000000] (false, nil)
+// before and after share the same first: that of Pair.
+assert(Pair.first === before.first);
+assert(Pair.first === after.first);

@@ -1,0 +1,109 @@
+%% Copyright (C) 2009-2010, Gostai S.A.S.
+%%
+%% This software is provided "as is" without warranty of any kind,
+%% either expressed or implied, including but not limited to the
+%% implied warranties of fitness for a particular purpose.
+%%
+%% See the LICENSE file for more information.
+
+\section{Directory}
+
+A \dfn{Directory} represents a directory of the file system.
+
+\subsection{Prototypes}
+\begin{refObjects}
+\item[Object]
+\end{refObjects}
+
+\subsection{Construction}
+
+A \dfn{Directory} can be constructed with one argument: the path of
+the directory using a \refObject{String} or a \refObject{Path}. It can
+also be constructed by the method open of \refObject{Path}.
+
+\begin{urbiscript}
+Directory.new(".");
+[00000001] Directory(".")
+Directory.new(Path.new("."));
+[00000002] Directory(".")
+\end{urbiscript}
+
+\subsection{Slots}
+\begin{urbiscriptapi}
+\item[asList]
+  The contents of the directory as a \refObject{Path} list.  The
+  various paths include the name of the directory \this.
+
+\item[asString] A \refObject{String} containing the path of the directory.
+
+\begin{urbiassert}
+Directory.new(".").asString == ".";
+\end{urbiassert}
+
+
+\item[content]
+  The contents of the directory as a \refObject{String} list.  The
+  strings include only the last component name; they do not contain
+  the directory name of \this.
+
+\item[fileCreated](<name>)%
+  Event launched when a file is created inside the directory.
+  May not exist if not supported by your architecture.
+
+%% firstline is used to separate inotify test from the others.
+\begin{urbiscript}[firstnumber=1]
+if (Path.new("./dummy.txt").exists)
+  File.new("./dummy.txt").remove;
+
+  {
+    var d = Directory.new(".");
+    waituntil(d.fileCreated?(var name));
+    assert
+    {
+      name == "dummy.txt";
+      Path.new(d.asString + "/" + name).exists;
+    };
+  }
+&
+  {
+    sleep(100ms);
+    File.create("./dummy.txt");
+  }|;
+\end{urbiscript}
+
+\item[fileDeleted](<name>)%
+  Event launched when a file is deleted from the directory.  May not exist
+  if not supported by your architecture.
+
+\begin{urbiscript}
+if (!Path.new("./dummy.txt").exists)
+  File.create("./dummy.txt")|;
+
+  {
+    var d = Directory.new(".");
+    waituntil(d.fileDeleted?(var name));
+    assert
+    {
+      name == "dummy.txt";
+      !Path.new(d.asString + "/" + name).exists;
+    };
+  }
+&
+  {
+    sleep(100ms);
+    File.new("./dummy.txt").remove;
+  }|;
+\end{urbiscript}
+%% Use firstline after this test if this is not related to inotify.
+
+
+\end{urbiscriptapi}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../urbi-sdk"
+%%% ispell-dictionary: "american"
+%%% ispell-personal-dictionary: "../urbi.dict"
+%%% fill-column: 76
+%%% End:

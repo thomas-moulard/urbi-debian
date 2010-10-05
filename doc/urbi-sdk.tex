@@ -1,0 +1,106 @@
+%% Copyright (C) 2009-2010, Gostai S.A.S.
+%%
+%% This software is provided "as is" without warranty of any kind,
+%% either expressed or implied, including but not limited to the
+%% implied warranties of fitness for a particular purpose.
+%%
+%% See the LICENSE file for more information.
+
+\documentclass[openright,twoside,11pt,final]{book}
+  \usepackage{gostai-documentation}
+  \usepackage{nameref}
+
+\newcommand{\UBinary}{\lstinline{UBinary}\xspace}
+\newcommand{\UImage}{\lstinline{UImage}\xspace}
+\newcommand{\UList}{\lstinline{UList}\xspace}
+\newcommand{\UObjectHub}{\lstinline{UObjectHub}\xspace}
+\newcommand{\UObject}{\lstinline{UObject}\xspace}
+\newcommand{\USound}{\lstinline{USound}\xspace}
+\newcommand{\UVar}{\lstinline{UVar}\xspace}
+\newcommand{\UEvent}{\lstinline{UEvent}\xspace}
+
+\usepackage{config}
+\newcommand{\uobjectsDir}{\absTopSrcdir/sdk-remote/src/urbi}
+
+%% -------------- %%
+%% Experimental.  %%
+%% -------------- %%
+
+\newcommand{\experimentalremoved}
+{%
+  \begin{quote}%
+    This feature is experimental.  It might be changed, or even removed.%
+    Feedback on its use would be appreciated.%
+  \end{quote}%
+}
+
+\newcommand{\experimental}
+{%
+  \begin{quote}%
+    This feature is experimental.  It might be changed in the future.
+    Feedback on its use would be appreciated.%
+  \end{quote}%
+}
+
+\title{The Urbi Software Development Kit}
+\subtitle{Version \packageVersion}
+\date{\VcsDay\\(Revision \VcsDescription)}
+\author{Gostai}
+
+\begin{document}
+
+\maketitle
+
+This documentation is updated regularly on the Gostai Web site both as a
+\href{\docurl/urbi-sdk.pdf}{PDF document}, and as a
+\href{\docurl/urbi-sdk.htmldir}{set of HTML pages}.  You may also want to
+look at the documentation of the latest versions.
+
+\newcommand{\versionItem}[2]
+{
+\item[\packageName{} #1] #2.
+
+  \begin{itemize}
+  \item \url{\downloadUrl/\packageTarname/#1/doc}
+  \item \url{\downloadUrl/\packageTarname/#1/doc/urbi-sdk.pdf}
+  \item \url{\downloadUrl/\packageTarname/#1/doc/urbi-sdk.htmldir}
+  \item \url{\downloadUrl/\packageTarname/#1/doc/sdk-remote.htmldir} \\
+    The Doxygen documentation of SDK Remote.
+  \end{itemize}
+}
+\begin{description}
+\versionItem{\packageVersion}{This version}
+\versionItem{\packageMajor.\packageMinor.x}{The latest version of the
+  \packageMajor.\packageMinor{} family of versions}
+\versionItem{\packageMajor.x}{The latest version (also available as
+  \url{\downloadUrl/\packageTarname/doc})}
+\end{description}
+
+\input{introduction}
+
+\tableofcontents
+
+\input{getting-started}
+
+%%% Keep sync with introduction.tex.
+\input{uobject/uobject}
+\input{tutorial/tutorial}
+\input{guide/guide}
+\input{specs/specs}
+\ifthen{\boolean{platforms}}
+{
+  \input{platforms/platforms}
+}
+\input{tables/tables}
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% coding: utf-8
+%%% TeX-master: t
+%%% ispell-dictionary: "american"
+%%% ispell-personal-dictionary: "urbi.dict"
+%%% fill-column: 76
+%%% End:

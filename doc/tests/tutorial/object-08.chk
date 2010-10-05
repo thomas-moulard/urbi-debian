@@ -1,0 +1,10 @@
+syncline << "doc/tutorial/object.tex:338";
+[01234567:syncline] "doc/tutorial/object.tex:338"
+//#line 338 "doc/tutorial/object.tex"
+class MyPair
+{
+  var first = nil;
+  var second = nil;
+  function asString() { "(" + first + ", " + second + ")"; };
+};
+[00000000] (nil, nil)

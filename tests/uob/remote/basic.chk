@@ -1,0 +1,19 @@
+//#plug urbi/uchange
+//#plug urbi/uaccess
+//#remote urbi/generic
+//#remote urbi/remote
+generic.load;
+[00000001] 1
+
+uchange.init();
+[00000002] 0
+
+var uac = uaccess.new;
+[00000003] uaccess_0xADDR
+var uch = uchange.new;
+[00000004] uchange_0xADDR
+// For some reason I do not understand, uac.val is actually changed
+// a lot in my back, and in a nondeterministic fashion (sometimes I
+// get 120, others 117 or even 100).
+uac.val - uac.val;
+[00000005] -1

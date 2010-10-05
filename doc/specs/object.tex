@@ -1,0 +1,677 @@
+%% Copyright (C) 2009-2010, Gostai S.A.S.
+%%
+%% This software is provided "as is" without warranty of any kind,
+%% either expressed or implied, including but not limited to the
+%% implied warranties of fitness for a particular purpose.
+%%
+%% See the LICENSE file for more information.
+
+\section{Object}
+
+All objects in \us must have \refObject{Object} in their
+parents. \refObject{Object} is done for this purpose so that it come
+with many primitives that are mandatory for all object in \us.
+
+\subsection{Prototypes}
+
+\begin{refObjects}
+\item[Orderable]
+\item[Global]
+\end{refObjects}
+
+\subsection{Construction}
+
+Fresh object can be instantiated by cloning Object itself.
+
+\begin{urbiscript}[firstnumber=1]
+Object.new;
+[00000421] Object_0x00000000
+\end{urbiscript}
+
+The keyword \lstindex{class} also allows to define objects which are
+intended to serve as prototype of a family of objects, similarly to
+classes in traditional object-oriented programming languages (see
+\autoref{sec:tut:class}).
+
+\begin{urbiscript}
+{
+  class Foo
+  {
+    var attr = 23;
+  };
+  assert
+  {
+    Foo.localSlotNames == ["asFoo", "attr", "type"];
+    Foo.asFoo === Foo;
+    Foo.attr == 23;
+    Foo.type == "Foo";
+  };
+};
+\end{urbiscript}
+
+
+\subsection{Slots}
+
+\begin{urbiscriptapi}
+\item[acceptVoid]
+  Return \this.  See \refObject{void} to know why.
+\begin{urbiscript}
+{
+  var o = Object.new;
+  assert(o.acceptVoid === o);
+};
+\end{urbiscript}
+
+
+\item[addProto](<proto>)%
+  Add \var{proto} into the list of prototypes of \this.
+  Return \this.
+\begin{urbiscript}
+do (Object.new)
+{
+  assert
+  {
+    addProto(Orderable) === this;
+    protos == [Orderable, Object];
+  };
+}|;
+\end{urbiscript}
+
+\item[allProto]
+  Return a list with \this, all parents of
+  \this, the parents of the parents of
+  \this,\ldots
+\begin{urbiassert}
+123.allProtos.size == 12;
+\end{urbiassert}
+
+\item[allSlotNames]
+  Deprecated alias for \refSlot{slotNames}.
+\begin{urbiassert}
+Object.allSlotNames == Object.slotNames;
+\end{urbiassert}
+
+\item[apply](<args>)%
+  ``Invoke \this''.  The size of the argument list,
+  \var{args}, must be one.  This argument is ignored.  This function
+  exists for compatibility with \refSlot[Code]{apply}.
+\begin{urbiassert}
+Object.apply([this]) === Object;
+Object.apply([1])    === Object;
+\end{urbiassert}
+
+\item[as](<type>)%
+  Convert \this to \var{type}.  This is syntactic sugar for
+  \lstinline|as\var{Type}| when \var{Type} is the \lstinline|type| of
+  \var{type}.
+\begin{urbiassert}
+     12.as(Float) == 12;
+   "12".as(Float) == 12;
+    12.as(String) == "12";
+Object.as(Object) === Object;
+\end{urbiassert}
+
+\item[asBool]
+  Whether \this is ``true'', see \autoref{sec:truth}.
+\begin{urbiscript}
+assert
+{
+  Global.asBool == true;
+  nil.asBool ==    false;
+};
+void.asBool;
+[00000421:error] !!! unexpected void
+\end{urbiscript}
+
+\item[bounce](<name>)%
+  Return \lstinline|this.\var{name}| transformed from a method into a
+  function that takes its target (its ``\this'') as first
+  and only argument.  \lstinline|this.\var{name}| must take no
+  argument.
+\begin{urbiassert}
+{ var myCos = Object.bounce("cos"); myCos(0) }    == 0.cos;
+{ var myType = bounce("type"); myType(Object); } == "Object";
+{ var myType = bounce("type"); myType(3.14); }   == "Float";
+\end{urbiassert}
+
+\item[callMessage](<msg>)%
+  Invoke the \refObject{CallMessage} \var{msg} on this.
+%%% \begin{urbiscript}
+%%% function f(var tgt, var msg, var args)
+%%% {
+%%%   call.target  = tgt;
+%%%   call.message = msg;
+%%%   call.code = tgt.getSlot(msg);
+%%%   call.args    = args;
+%%%   call.inspect;
+%%%   tgt.callMessage(call);
+%%% }|;
+%%% assert
+%%% {
+%%%   f(Object, "type", []) == "Object.f(1, 2)";
+%%%
+%%% };
+%%% \end{urbiscript}
+\item[clone]
+  Clone \this, i.e., create a fresh, empty, object, which
+  sole prototype is \this.
+\begin{urbiassert}
+Object.clone.protos == [Object];
+Object.clone.localSlotNames == [];
+\end{urbiassert}
+
+\item[cloneSlot](<from>, <to>)%
+  Set the new slot \var{to} using a clone of \var{from}. This can only
+  be used into the same object.
+
+\begin{urbiscript}
+var foo = Object.new |;
+cloneSlot("foo", "bar") |;
+assert(!(foo === bar));
+\end{urbiscript}
+
+\item[copySlot](<from>, <to>)%
+  Same as \lstinline|cloneSlot|, but the slot aren't cloned, so the
+  two slot are the same.
+\begin{urbiscript}
+var moo = Object.new |;
+cloneSlot("moo", "loo") |;
+assert(!(moo === loo));
+\end{urbiscript}
+
+\item[createSlot](<name>)%
+  Create an empty slot (which actually means it is bound to
+  \lstinline|void|) named \var{name}.  Raise an error if \var{name}
+  was already defined.
+\begin{urbiscript}
+do (Object.new)
+{
+  assert(!hasLocalSlot("foo"));
+  assert(createSlot("foo").isVoid);
+  assert(hasLocalSlot("foo"));
+}|;
+\end{urbiscript}
+
+\item[dump](<depth>)%
+  Describe \this: its prototypes and slots.  The argument
+  \var{depth} specifies how recursive the description is: the greater,
+  the more detailed.  This method is mostly useful for debugging
+  low-level issues, for a more human-readable interface, see also
+  \refSlot{inspect}.
+\begin{urbiscript}
+do (2) { var this.attr = "foo"; this.attr->prop = "bar" }.dump(0);
+[00015137] *** Float_0x240550 {
+[00015137] ***   /* Special slots */
+[00015137] ***   protos = Float
+[00015137] ***   value = 2
+[00015137] ***   /* Slots */
+[00015137] ***   attr = String_0x23a750 <...>
+[00015137] ***     /* Properties */
+[00015137] ***     prop = String_0x23a7a0 <...>
+[00015137] ***   }
+do (2) { var this.attr = "foo"; this.attr->prop = "bar" }.dump(1);
+[00020505] *** Float_0x240550 {
+[00020505] ***   /* Special slots */
+[00020505] ***   protos = Float
+[00020505] ***   value = 2
+[00020505] ***   /* Slots */
+[00020505] ***   attr = String_0x23a750 {
+[00020505] ***     /* Special slots */
+[00020505] ***     protos = String
+[00020505] ***     /* Slots */
+[00020505] ***     }
+[00020505] ***     /* Properties */
+[00020505] ***     prop = String_0x239330 {
+[00020505] ***       /* Special slots */
+[00020505] ***       protos = String
+[00020505] ***       /* Slots */
+[00020505] ***       }
+[00020505] ***   }
+\end{urbiscript}
+
+\item[getPeriod]
+  Deprecated.  Use \refSlot[System]{period} instead.
+
+\item[getProperty](<slotName>, <propName>)%
+  Return the value of the \var{propName} property associated to the
+  slot \var{slotName} if defined, \lstinline|void| otherwise.
+\begin{urbiscript}
+const var myPi = 3.14|;
+assert
+{
+  getProperty("myPi", "constant");
+  getProperty("myPi", "foobar").isVoid;
+};
+\end{urbiscript}
+
+\item[getLocalSlot](<name>)%
+  The value associated to \var{name} in \this, excluding
+  its ancestors (contrary to \lstinline|getSlot|).
+\begin{urbiscript}
+var a = Object.new|;
+
+// Local slot.
+var a.slot = 21|;
+assert
+{
+  a.locateSlot("slot") === a;
+  a.getLocalSlot("slot") == 21;
+};
+
+// Inherited slot are not looked-up.
+assert { a.locateSlot("init") == Object };
+a.getLocalSlot("init");
+[00041066:error] !!! lookup failed: init
+\end{urbiscript}
+
+\item[getSlot](<name>)%
+  The value associated to \var{name} in \this, possibly
+  after a look-up in its prototypes (contrary to
+  \lstinline|getLocalSlot|).
+\begin{urbiscript}
+var b = Object.new|;
+var b.slot = 21|;
+
+assert
+{
+  // Local slot.
+  b.locateSlot("slot") === b;
+  b.getSlot("slot") == 21;
+
+  // Inherited slot.
+  b.locateSlot("init") === Object;
+  b.getSlot("init") == Object.getSlot("init");
+};
+
+// Unknown slot.
+assert { b.locateSlot("ENOENT") == nil; };
+b.getSlot("ENOENT");
+[00041066:error] !!! lookup failed: ENOENT
+\end{urbiscript}
+
+\item[hasLocalSlot](<slot>)%
+  Whether \this features a slot \var{slot}, locally, not
+  from some ancestor.  See also \refSlot{hasSlot}.
+\begin{urbiscript}
+class Base         { var this.base = 23; } |;
+class Derive: Base { var this.derive = 43 } |;
+assert(Derive.hasLocalSlot("derive"));
+assert(!Derive.hasLocalSlot("base"));
+\end{urbiscript}
+
+\item[hasProperty](<slotName>, <propName>)%
+  Whether the slot \var{slotName} of \this has a property
+  \var{propName}.
+\begin{urbiscript}
+const var halfPi = pi / 2|;
+assert
+{
+  hasProperty("halfPi", "constant");
+  !hasProperty("halfPi", "foobar");
+};
+\end{urbiscript}
+
+\item[hasSlot](<slot>)%
+  Whether \this has the slot \var{slot}, locally, or from
+  some ancestor.  See also \refSlot{hasLocalSlot}.
+
+\begin{urbiassert}
+Derive.hasSlot("derive");
+Derive.hasSlot("base");
+!Base.hasSlot("derive");
+\end{urbiassert}
+
+\item['$id']% fix color $
+
+\item[inspect](<deep> = false)%
+  Describe \this: its prototypes and slots, and their
+  properties.  If \var{deep}, all the slots are described, not only
+  the local slots. See also \refSlot{dump}.
+\begin{urbiscript}
+do (2) { var this.attr = "foo"; this.attr->prop = "bar"}.inspect;
+[00001227] *** Inspecting 2
+[00001227] *** ** Prototypes:
+[00001227] ***   0
+[00001227] *** ** Local Slots:
+[00001228] ***   attr : String
+[00001228] ***     Properties:
+[00001228] ***      prop : String = "bar"
+\end{urbiscript}
+
+\item[isA](<obj>)%
+  Return true if \this has \var{obj} in his parents, false
+  otherwise.
+\begin{urbiassert}
+Float.isA(Orderable);
+!(String.isA(Float));
+\end{urbiassert}
+
+\item[isNil]
+  Return true if \this is \refObject{nil}, false otherwise.
+\begin{urbiassert}
+nil.isNil;
+!(0.isNil);
+\end{urbiassert}
+
+\item[isProto]
+  Return true if \this is a prototype, false otherwise;
+\begin{urbiassert}
+Float.isProto;
+!(42.isProto);
+\end{urbiassert}
+
+\item[isVoid]
+  Return true if \this is \lstinline|void|.  See
+  \refObject{void}.
+\begin{urbiassert}
+void.isVoid;
+! 42.isVoid;
+\end{urbiassert}
+
+\item[localSlotNames] Return a list with the names of the local slots of
+  \this, not including those of its ancestors.  See also
+  \refSlot{slotNames}.
+\begin{urbiscript}
+var top = Object.new|;
+var top.top1 = 1|;
+var top.top2 = 2|;
+var bot = top.new|;
+var bot.bot1 = 10|;
+var bot.bot2 = 20|;
+assert
+{
+  top.localSlotNames == ["top1", "top2"];
+  bot.localSlotNames == ["bot1", "bot2"];
+};
+\end{urbiscript}
+
+\item[locateSlot](<slot>)%
+  Return \lstinline|nil| if \this don't have the slot
+  \lstinline|slot|. Otherwise it returns the first lowest owner of
+  \lstinline|slot| of \this.
+\begin{urbiassert}
+locateSlot("init") == Channel;
+locateSlot("doesNotExist").isNil;
+\end{urbiassert}
+
+\item[print]
+  Send \lstinline|print| to the \refSlot[Channel]{topLevel} channel.
+\begin{urbiscript}
+1.print;
+[00001228] 1
+[1, "12"].print;
+[00001228] [1, "12"]
+\end{urbiscript}
+
+\item[protos]
+  Return the list of prototypes of \this.
+\begin{urbiassert}
+12.protos == [0];
+\end{urbiassert}
+
+\item[properties](<slotName>)%
+  Return a dictionary of the properties of slot \var{slotName}.  Raise
+  an error if the slot does not exist.
+\begin{urbiscript}
+2.properties("foo");
+[00238495:error] !!! lookup failed: foo
+do (2) { var foo = "foo" }.properties("foo");
+[00238501] ["constant" => false]
+do (2) { var foo = "foo" ; foo->bar = "bar" }.properties("foo");
+[00238502] ["bar" => "bar", "constant" => false]
+\end{urbiscript}
+
+\item[removeProperty](<slotName>, <propName>)%
+  Remove the property \var{propName} from the slot \var{slotName}.
+  Raise an error if the slot does not exist, do nothing if the
+  property does not exist.
+\begin{urbiscript}
+do (2)
+{
+  var foo = "foo";
+  foo->bar = "bar";
+  removeProperty("foo", "bar");
+}.properties("foo");
+[00238502] ["constant" => false]
+
+2.removeProperty("foo", "bar");
+[00000072:error] !!! lookup failed: foo
+
+do (2)
+{
+  var foo = "foo";
+  removeProperty("foo", "bar");
+}|;
+\end{urbiscript}
+
+\item[removeProto](<proto>)%
+  Remove \var{proto} from the list of prototypes of \this,
+  and return \this.  Do nothing if \var{proto} is not a
+  prototype of \this.
+\begin{urbiscript}
+do (Object.new)
+{
+  assert
+  {
+    addProto(Orderable);
+    removeProto(123) === this;
+    protos == [Orderable, Object];
+    removeProto(Orderable) === this;
+    protos == [Object];
+  };
+}|;
+\end{urbiscript}
+
+\item[removeSlot](<slot>)%
+  Remove \var{slot} from the (local) list of slots of
+  \this, and return \this.  Do nothing if
+  \var{slot} does not exist.
+\begin{urbiscript}
+{
+  var base = Object.new;
+  var base.slot = "base";
+
+  var derive = Base.new;
+  var derive.slot = "derive";
+
+  do (derive)
+  {
+    assert
+    {
+      removeSlot("no such slot") === this;
+      removeSlot("slot") === this;
+      localSlotNames == [];
+      base.slot == "base";
+      removeSlot("slot") === this;
+      base.slot == "base";
+    };
+  }|;
+};
+\end{urbiscript}
+
+
+\item[setConstSlot]
+  Like \lstinline|setSlot| but the created slot is const.
+\begin{urbiscript}
+assert(setConstSlot("fortyTwo", 42) == 42);
+fortyTwo = 51;
+[00000000:error] !!! cannot modify const slot
+\end{urbiscript}
+
+\item[setProperty](<slotName>, <propName>, <value>)%
+  Set the property \var{propName} of slot \var{slotName} to
+  \var{value}.  Raise an error in \var{slotName} does not exist.
+  Return \var{value}.  This is what
+  \lstinline|\var{slotName}->\var{propName} = \var{value}| actually
+  performs.
+\begin{urbiscript}
+do (Object.new)
+{
+  var slot = "slot";
+  var value = "value";
+  assert
+  {
+    setProperty("slot", "prop", value) === value;
+    "prop" in properties("slot");
+    getProperty("slot", "prop") === value;
+    slot->prop === value;
+    setProperty("slot", "noSuchProperty", value) === value;
+  };
+}|;
+setProperty("noSuchSlot", "prop", "12");
+[00000081:error] !!! lookup failed: noSuchSlot
+\end{urbiscript}
+
+
+\item[setProtos](<protos>)%
+  Set the list of prototypes of \this to \var{protos}.
+  Return \lstinline|void|.
+\begin{urbiscript}
+do (Object.new)
+{
+  assert
+  {
+    protos == [Object];
+    setProtos([Orderable, Object]).isVoid;
+    protos == [Orderable, Object];
+  };
+}|;
+\end{urbiscript}
+
+\item[setSlot](<name>, <value>)%
+  Create a slot \var{name} mapping to \var{value}. Raise an error if
+  \var{name} was already defined.  This is what
+  \lstinline|var \var{name} = \var{value}| actually performs.
+\begin{urbiassert}
+Object.setSlot("theObject", Object) === Object;
+Object.theObject === Object;
+theObject === Object;
+\end{urbiassert}
+
+  If the current job is in redefinition mode, \lstinline|setSlot| on
+  an already defined slot is not an error and overwrites the slot like
+  \lstinline|updateSlot| would. See the \lstinline|redefinitionMode|
+  method in \refObject{System}.
+
+\item[slotNames]
+  Return a list with the slot names of \this and its
+  ancestors.
+\begin{urbiassert}
+Object.localSlotNames
+  .subset(Object.slotNames);
+Object.protos.foldl(function (var r, var p) { r + p.localSlotNames },
+                    [])
+  .subset(Object.slotNames);
+\end{urbiassert}
+
+\item[type]%
+  The name of the type of \this.  The \lstinline|class|
+  construct defines this slot to the name of the class
+  (\autoref{sec:tut:class}).  This is used to display the name of
+  ``instances''.
+\begin{urbiscript}
+class Example {};
+[00000081] Example
+assert
+{
+  Example.type == "Example";
+};
+Example.new;
+[00000081] Example_0x6fb2720
+\end{urbiscript}
+
+\item[uid]
+  Returns the unique id of \this.
+\begin{urbiscript}
+{
+  var foo = Object.new;
+  var bar = Object.new;
+  assert
+  {
+    foo.uid == foo.uid;
+    foo.uid != bar.uid;
+  };
+};
+\end{urbiscript}
+
+\item[unacceptvoid]
+  Return \this.  See \refObject{void} to know why.
+\begin{urbiscript}
+{
+  var o = Object.new|
+  assert(o.unacceptVoid === o);
+};
+\end{urbiscript}
+
+%%% FIXME: \item[uobjectInit]
+\item[updateSlot](<name>, <value>)%
+  Map the existing slot named \var{name} to \var{value}. Raise an
+  error if \var{name} was not defined.
+\begin{urbiassert}
+Object.setSlot("one", 1)    == 1;
+Object.updateSlot("one", 2) == 2;
+Object.one                  == 2;
+\end{urbiassert}
+
+\item['&&'](<that>)%
+  Short-circuiting logical and. If \this evaluates to true
+  evaluate and return \var{that}, otherwise return \this
+  without evaluating \var{that}.
+\begin{urbiassert}
+(0 && "foo") == 0;
+(2 && "foo") == "foo";
+
+(""    && "foo") == "";
+("foo" && "bar") == "bar";
+\end{urbiassert}
+
+\item['||'](<that>)%
+  Short-circuiting logical or. If \this evaluates to false
+  evaluate and return \var{that}, otherwise return \this
+  without evaluating \var{that}.
+\begin{urbiassert}
+(0 || "foo") == "foo";
+(2 ||  1/0)  == 2;
+
+(""    || "foo") == "foo";
+("foo" || 1/0)   == "foo";
+\end{urbiassert}
+
+\item \lstinline|'!'|\\
+  Logical negation. If \this evaluates to false return
+  \lstinline|true| and vice-versa.
+\begin{urbiassert}
+!1 == false;
+!0 == true;
+
+!"foo" == false;
+!""    == true;
+\end{urbiassert}
+
+\item['+='](<that>)%
+  Bounce to \lstinline|this '+' \var{that}|.
+
+\item['-='](<that>)%
+  Bounce to \lstinline|this '-' \var{that}|.
+
+\item['*='](<that>)%
+  Bounce to \lstinline|this '*' \var{that}|.
+
+\item['/='](<that>)%
+  Bounce to \lstinline|this '/' \var{that}|.
+
+\item['^='](<that>)%
+  Bounce to \lstinline|this '^' \var{that}|.
+
+\item \lstinline|'%='(\var{that})|\\
+  Bounce to \lstinline|this '-' \var{that}|.
+
+\end{urbiscriptapi}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../urbi-sdk"
+%%% ispell-dictionary: "american"
+%%% ispell-personal-dictionary: "../urbi.dict"
+%%% fill-column: 76
+%%% End:

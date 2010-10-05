@@ -1,0 +1,36 @@
+syncline << "doc/tables/notation.tex:58";
+[01234567:syncline] "doc/tables/notation.tex:58"
+//#line 58 "doc/tables/notation.tex"
+echo("toto");
+[00000001] *** toto
+
+syncline << "doc/tables/notation.tex:70";
+[01234567:syncline] "doc/tables/notation.tex:70"
+//#line 70 "doc/tables/notation.tex"
+cout << "toto";
+[00000002:output] "toto"
+
+syncline << "doc/tables/notation.tex:81";
+[01234567:syncline] "doc/tables/notation.tex:81"
+//#line 81 "doc/tables/notation.tex"
+assert {
+1 == 2 / 2;
+1 < 2;
+true;
+"foobar"[0, 3] == "foo";
+[1, 2, 3].map (function (a) { a * a }) == [1, 4, 9];
+[ => ].empty;
+};
+
+syncline << "doc/tables/notation.tex:94";
+[01234567:syncline] "doc/tables/notation.tex:94"
+//#line 94 "doc/tables/notation.tex"
+assert
+{
+  true;
+  1 < 2;
+  1 + 2 * 3 == 7;
+  "foobar"[0, 3] == "foo";
+  [1, 2, 3].map (function (a) { a * a }) == [1, 4, 9];
+  [ => ].empty;
+};

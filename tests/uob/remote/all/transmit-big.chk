@@ -1,0 +1,12 @@
+//#remote urbi/all
+
+var l = [1] * 100000|;
+
+var r = remall.transmitL(l)|;
+r.size;
+[00000001] 100000
+
+l = [2] * 100000|;
+r = remall.transmitL(l)|;
+r.size;
+[00000002] 100000

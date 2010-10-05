@@ -1,0 +1,19 @@
+//#plug urbi/all
+//#plug urbi/rtp
+//#remote urbi/all urbi/rtp
+
+// To check that data is sent by RTP, check that there is no trafic
+// on our TCP connection.
+remall.markRTP(1,1)|;
+// Disable value update feedback.
+remall.unnotify(1)|;
+remall.periodicWriteType = 0|
+remall.periodicWriteTarget = 1|
+remall.periodicWriteRate = 50ms|;
+sleep(500ms); // time to setup
+remall.lobby.isSilent(400ms, 0, 40).print,
+remall.b.isA(Binary);
+[00000001] true
+sleep(500ms);
+[00000002] true
+

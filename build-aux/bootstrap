@@ -1,0 +1,11 @@
+#! /bin/sh
+
+cat >&2 <<EOF
+
+## ------------------------------------------------------------------- ##
+## Please use build-aux/bin/bootstrap instead of build-aux/bootstrap.  ##
+## ------------------------------------------------------------------- ##
+
+EOF
+
+exec "$(dirname "$0")"/bin/bootstrap "$@"

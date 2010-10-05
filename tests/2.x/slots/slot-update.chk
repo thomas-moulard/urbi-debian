@@ -1,0 +1,28 @@
+//most cases are tested in scopes-named.chk and scopes.chk
+
+var a = 1;
+[00000001] 1
+{
+  a = 2;
+  locateSlot("a") === lobby
+};
+[00000002] true
+var c = Object.clone;
+[00000003] Object_0xADDR
+var cc = c.clone;
+[00000004] Object_0xADDR
+var c.a = 1;
+[00000005] 1
+{
+  var Object.f = function()
+  {
+    a = 2
+  };
+  void
+};
+cc.f;
+[00000006] 2
+cc.a;
+[00000007] 2
+c.a;
+[00000008] 1

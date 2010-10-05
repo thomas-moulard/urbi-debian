@@ -1,0 +1,365 @@
+%% Copyright (C) 2009-2010, Gostai S.A.S.
+%%
+%% This software is provided "as is" without warranty of any kind,
+%% either expressed or implied, including but not limited to the
+%% implied warranties of fitness for a particular purpose.
+%%
+%% See the LICENSE file for more information.
+
+\chapter{Quick Start}
+\label{sec:uob:quick}
+
+This chapter presents \usdk with a specific focus on its
+middleware features.  It is self-contained in order to help readers
+quickly grasp the potential of \urbi used as a middleware.  References
+to other sections of this document are liberally provided to point the
+reader to the more complete documentation; they should be ignored
+during the first reading.
+
+\section{UObject Basics}
+
+As a simple running example, consider a (very) basic factory.  Raw
+material delivered to the factory is pushed into some assembly machine,
+which takes some time.
+
+As a firth component of this factory, the core engine of the factory
+is implemented as follows.  This class is pure regular \Cxx, it uses
+no \urbi feature at all.
+
+\newcommand{\factoryDir}{\uobjectsDir/factory.uob}
+\lstinputlisting[language=C++,basicstyle=\ttfamily\footnotesize]{\factoryDir/factory.hh}
+\lstinputlisting[language=C++,basicstyle=\ttfamily\footnotesize]{\factoryDir/factory.cc}
+
+\subsection{Wrapping into an UObject}
+
+By \dfn{binding} a UObject, we mean using the UObject API to declare
+objects to the \urbi world.  These objects have member variables (also
+known as \dfn{attributes}) and/or member functions (also known as
+\dfn{methods}) all of them or some of them being declared into the
+\urbi world.
+
+One could modify the \lstinline|Factory| class to make it a UObject,
+yet we rather recommend wrapping pure \Cxx classes into a UObject.  It
+is strongly suggested to aggregate the native \Cxx objects in the
+UObject --- rather than trying to derive from it.  By convention, we
+prepend a ``U'' to the name of the base class, hence the
+\lstinline|UFactory| class.
+
+\lstinputlisting[language=C++,basicstyle=\ttfamily\footnotesize]{\factoryDir/ufactory.hh}
+
+The implementation of \lstinline|UFactory| is quite straightforward.
+It uses some of the primitives used in the binding process
+(\autoref{sec:uob:api:bind}):
+\begin{itemize}
+\item \lstinline|UStart(\var{class})| declares classes that are
+  UObjects; eventually such classes will appear in \us as
+  \lstinline|uobjects.\var{class}|.  Use it once.
+
+\item \lstinline|UBindFunction(\var{class}, \var{function})| declares
+  a \var{function}.  Eventually bound in the \us world as
+  \lstinline|uobjects.\var{class}.\var{function}|.
+
+\item Similarly, \lstinline|UBindVar(\var{class}, \var{variable})|
+  declares a \var{variable}.
+\end{itemize}
+
+\urbi relies on the prototype model for object-oriented programming,
+which is somewhat different from the traditional \Cxx class-based
+model (\autoref{sec:tut:value}).  This is reflected by the presence of
+\emph{two} different constructors:
+\begin{itemize}
+\item \lstinline|UFactory::UFactory|, the \Cxx constructor which is
+  invoked for every single instance of the UObject.  It is always
+  invoked by the \urbi system when instantiating a UObject,
+  \emph{including} the prototype itself.  It sole argument is its name
+  (an internal detail you need not be aware of), and its main purpose
+  is to register attributes and functions, especially the
+  \lstinline|UFactory::init| function.
+
+\item \lstinline|UFactory::init|, the \urbi constructor invoked each
+  time a new clone of \lstinline|UFactory| is made, i.e., for every
+  instance except the first one.
+
+  Functions and variables that do not make sense for the initial
+  prototype (which might not be fully functional) should be bound
+  here, rather that in the \Cxx constructor.
+\end{itemize}
+
+The following listing is abundantly commented, and is easy to grasp.
+
+\lstinputlisting[language=C++,basicstyle=\ttfamily\footnotesize]{\factoryDir/ufactory.cc}
+
+\subsection{Running Components}
+\label{sec:uob:quick:run}
+%  * Compilation et branchement de UObject (urbi-launch): expliquer les
+%  deux modes: distant / pluge'
+%
+%  * Cycle complet de lancement d'une appli Urbi: lancement d'urbi,
+%  execution d'urbi.ini, chargement dynamique des UObjects
+
+
+As a first benefit from using the \urbi environment, this source code
+is already runnable!  No \lstinline|main| function is needed, the
+\urbi system provides one.
+
+\subsubsection{Compiling}
+Of course, beforehand, we need to compile this UObject into some loadable
+module.  The \urbi modules are \dfn{shared objects}, i.e., libraries that
+can be loaded on demand (and unloaded) during the execution of the program.
+Their typical file names depend on the architecture: \file{ufactory.so} on
+most Unix (including Mac OS X), and \file{ufactory.dll} on Windows.  To
+abstract away from these differences, we will simply use the base name,
+\file{ufactory} with the \urbi tool chain.
+
+There are several options to compile our factory as a UObject.  If you are
+using Microsoft Visual Studio, the \usdk installer created a ``UObject''
+project template accessible through the ``New project'' wizard.  Otherwise,
+you can use directly your regular compiler tool chain.  You may also use
+\command{umake-shared} from the \file{umake-*} family of programs
+(\autoref{sec:tools:umake:wrappers}):
+
+\begin{shell}
+$ ls factory.uob
+factory.cc  factory.hh  ufactory.cc  ufactory.hh
+$ umake-shared factory.uob -o factory
+# ... Lots of compilation log messages ...
+$ ls
+_ubuild-factory.so  factory.la  factory.so  factory.uob
+\end{shell}
+
+The various files are:
+\begin{description}
+\item[\file{factory.uob}] Merely by convention, the sources of our
+  UObject are in a \file{*.uob} directory.
+\item[\file{factory.so}] A shared dlopen-module.  This is the ``true''
+  product of the \command{umake-shared} invocation.  Its default name
+  can be quite complex (\file{uobject-i386-apple-darwin9.7.0.so} on my
+  machine), as it will encode information about the architecture of
+  your machine; if you don't need such accuracy, use the option
+  \option{--output}/\option{-o} to specify the output file name.
+
+  \command{umake-shared} traversed \file{factory.uob} to gather and
+  process relevant files (source files, headers, libraries and object
+  files) in order to produce this output file.
+
+\item[\file{\_ubuild-factory.so}] this is a temporary directory in
+  which the compilation takes place.  It can be safely removed by
+  hand, or using \command{umake-deepclean}
+  (\autoref{sec:tools:umake:wrappers}).
+
+\item[\file{factory.la}] a
+  \href{http://www.gnu.org/software/libtool/}{GNU Libtool} file that
+  contains information such as dependencies on other libraries.  While
+  this file should be useless most of the time, we recommend against
+  removing it: it may help understand some problems.
+\end{description}
+
+\subsubsection{Running UObjects}
+
+There are several means to toy with this simple UObject.  You can use
+\command{urbi-launch} (\autoref{sec:tools:urbi-launch}) to plug the
+UFactory in an \urbi server and enter an interactive session.
+
+\begin{shell}[alsolanguage={[interactive]Urbi}]
+# Launch an Urbi server with UFactory plugged in.
+$ urbi-launch --start ufactory -- --interactive
+[00000987] *** ********************************************************
+[00000990] *** Urbi SDK version 2.0.3 rev. d6a568d
+[00001111] *** Copyright (C) 2005-2010 Gostai S.A.S.
+[00001111] ***
+[00001111] *** This program comes with ABSOLUTELY NO WARRANTY.  It can
+[00001112] *** be used under certain conditions.  Type `license;',
+[00001112] *** `authors;', or `copyright;' for more information.
+[00001112] ***
+[00001112] *** Check our community site: http://www.urbiforge.org.
+[00001112] *** ********************************************************
+var f = uobjects.UFactory.new(1s);
+[00020853] UFactory_0x1899c90
+f.assemble(["Hello, ", "World!"]);
+[00038705] "Hello, World!"
+shutdown;
+\end{shell}
+
+You may also launch the factory UObject in the background, as a
+network component:
+
+\begin{shell}[alsolanguage={[interactive]Urbi}]
+$ urbi-launch --start ufactory --host 0.0.0.0 --port 54000 &
+\end{shell}
+
+\noindent
+and interact with it using your favorite client (\command{telnet},
+\command{netcat}, \command{socat}, \ldots), or using the
+\command{urbi-send} tool (\autoref{sec:tools:urbi-send}).
+
+\begin{shell}[alsolanguage={[interactive]Urbi}]
+$ urbi-send --port 54000                            \
+            -e 'var f = uobjects.UFactory.new(1s)|' \
+            -e 'f.assemble(["12", "34"]);'          \
+            --quit
+[00146148] "1234"
+[00000000:client_error] End of file
+$ urbi-send --port 54000                                            \
+            -e uobjects.UFactory.new(1s).assemble(["34", "12"]);'   \
+            --quit
+[00146148] "3412"
+[00000000:client_error] End of file
+\end{shell}
+
+
+\subsection{Asynchronicity}
+% * Asynchronisme dans UObject: notifychange, timers
+
+
+\section{Using \us}
+
+% Introduction a` Urbiscript (rappeler que c'est avant tout un langage
+% comme les autres, avec if/for/while, etc), puis passer rapidement
+% aux elements clefs de la prog evenementielle dans Urbi: at/whenever
+
+\us is a programming language primarily designed for robotics.  Its
+syntax is inspired by that of \Cxx: if you know \C, \Cxx, \java or \Cs,
+writing \us programs is easy.  It's a dynamic object-oriented
+(\autoref{sec:tut:object}) scripting language, which makes it well
+suited for high-level application.  It supports and emphasizes
+parallel (\autoref{sec:tut:concurrent}) and event-based programming
+(\autoref{sec:tut:event-prog}), which are very popular paradigms in
+robotics, by providing core primitives and language constructs.
+
+Thanks to its client/server approach, one can easily interact with a
+robot, to monitor it, or to experiment live changes in the \us
+programs.
+
+Courtesy of the UObject architecture, \us is fully integrated with
+\Cxx. As already seen in the above examples
+(\autoref{sec:uob:quick:run}), you can bind \Cxx classes in \us
+seamlessly. \us is also integrated with many other languages such as
+\java, \matlab or \python.  UObject also naturally provide \us with
+support for distributed architectures: objects can run in different
+processes, possibly on remote computers.
+
+%% Everything that follows is bullshit: UObject invocations are
+%% *not* in different threads, so we are definitely doomed here.
+%%
+\subsection{The \us Scripting Language}
+
+The following example shows how one can easily interface UObjects into
+the \us language.  The following simple class (actually, a genuine
+object, in \us ``classes are objects'', see \autoref{sec:tut:object})
+aggregates two assembly machines, a fast one, and a slow one.  This
+class demonstrates usual object-oriented, sequential, features.
+
+\begin{urbiscript}[firstnumber=1]
+//#plug urbi/factory
+class TwoMachineFactory
+{
+  // A shorthand common to all the Two Machine factories.
+  var UFactory = uobjects.UFactory;
+
+  // Default machines.
+  var this.fastMachine = UFactory.new(10ms);
+  var this.slowMachine = UFactory.new(100ms);
+
+  // The urbiscript constructor.
+  // Build two machines, a fast one, and a slow one.
+  function init(fast = 10ms, slow = 100ms)
+  {
+    // Make sure fast <= slow.
+    if (slow < fast)
+      [fast, slow] = [slow, fast];
+    // Two machines for each instance of factory.
+    fastMachine = UFactory.new(fast);
+    slowMachine = UFactory.new(slow);
+  };
+
+  // Wrappers to make invocation of the machine simpler.
+  function fast(input) { fastMachine.assemble(input) };
+  function slow(input) { slowMachine.assemble(input) };
+
+  // Use the slow machine for large jobs.
+  function assemble(input)
+  {
+    var res;
+    if (5 < input.size)
+      { res = slow(input); echo("Used the slow machine") }
+    else
+      { res = fast(input); echo("Used the fast machine") } |
+    res
+  };
+};
+[00000001] TwoMachineFactory
+\end{urbiscript}
+
+Using this class is straightforward.
+
+\begin{urbiscript}
+var f = TwoMachineFactory.new|;
+f.assemble([1, 2, 3, 4, 5, 6]);
+[00000002] *** Used the slow machine
+[00000003] "123456"
+f.assemble([1]);
+[00000004] *** Used the fast machine
+[00000005] "1"
+\end{urbiscript}
+
+The genuine power of \us is when concurrency comes into play.
+
+\subsection{Concurrency}
+% * Parallelisme explicite: \&
+%
+% * Tags et controle d'execution
+%
+% * Channels et liburbi (les principes, renvoyer a` la doc liburbi pour
+% l'API)
+%
+% * All together, on reprend l'exemple du de'but et on de'taille le code
+% des UObjects utilise's, puis le code urbiscript.
+
+First of all, why should we wait for the slow job to finish if we have
+a fast machine available?
+
+\begin{urbiscript}
+f.assemble([1, 2, 3, 4, 5, 6]),
+f.assemble([1]),
+[00000004] *** Used the fast machine
+sleep(100ms);
+[00000002] *** Used the slow machine
+\end{urbiscript}
+
+Contrary to the previous run, the fast machine answered first.  There
+is one bit (one dot?) of difference between both runs: the first one
+used the sequential terminator, \samp{;}, while the second run used
+\samp{,} to send the execution ``in background''.
+
+You maybe also notice that the result is no longer reported.  Indeed,
+the \us interactive shell only displays the result of synchronous
+expressions (i.e., those ending with a \samp{;}): asynchronous answers
+are confusing (see the inversion here).
+
+Channels (\refObject{Channel}) are useful to ``send'' asynchronous
+answers.
+
+\begin{urbiassert}
+//for, (var list = [1, 2, 3, 4, 5, 6, 7];
+//      !list.empty;
+//      list.removeBack)
+//  cout << list.asString + " => " + f.assemble(list);
+//sleep(1s);
+\end{urbiassert}
+
+\section{Conclusion}
+% * Conclusion note: expliquer qu'on peut embedder l'engine Urbi dans
+% une appli native C++ (tout le monde le demande), qu'on peut faire
+% des bridges ge'ne'riques avec d'autres archis a` composants (citer
+% CORBA), donner le lien pour te'le'charger, le lien vers la doc du
+% langage urbiscript, vers la doc de UObject, etc.
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../urbi-sdk"
+%%% ispell-dictionary: "american"
+%%% ispell-personal-dictionary: "../urbi.dict"
+%%% fill-column: 76
+%%% End:

@@ -1,0 +1,46 @@
+URBI_MODULE([ros],
+[
+
+# We absolutely need this variable.
+if test x"$ROS_ROOT" != "x"; then
+  urbi_enable_module=true
+else
+  AC_MSG_NOTICE([ROS_ROOT undefined, not using ROS])
+  urbi_enable_module=false
+fi
+
+ROS_INCLUDE_DIRS='
+ 3rdparty/xmlrpcpp/src
+ core/rosconsole/include
+ core/roscpp/include
+ core/roscpp/msg_gen/cpp/include
+ core/cpp/srv_gen/cpp/include
+ core/roslib/include
+ core/roslib/msg_gen/cpp/include
+ tools/rospack/include'
+
+ROS_LIB_DIRS='
+3rdparty/xmlrpcpp/lib
+core/rosconsole/lib
+core/roscpp/lib
+core/roslib/lib
+tools/rospack/lib'
+
+if $urbi_enable_module; then
+  INCLUDE_FLAGS=
+  for d in $ROS_INCLUDE_DIRS; do
+    INCLUDE_FLAGS="$INCLUDE_FLAGS -I$ROS_ROOT/$d"
+  done
+
+  LIBRARY_FLAGS=
+  for d in $ROS_LIB_DIRS; do
+    LIBRARY_FLAGS="$LIBRARY_FLAGS -L$ROS_ROOT/$d"
+  done
+  LIBRARY_FLAGS+="$LIBRARY_FLAGS -lros"
+
+  RPATH="-Wl,-rpath,$ROS_ROOT/core/roscpp/lib"
+
+  AC_SUBST([ros_CPPFLAGS], [$INCLUDE_FLAGS])
+  AC_SUBST([ros_LDFLAGS],  ["$LIBRARY_FLAGS $RPATH"])
+fi
+])

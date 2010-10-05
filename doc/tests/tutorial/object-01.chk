@@ -1,0 +1,17 @@
+syncline << "doc/tutorial/object.tex:88";
+[01234567:syncline] "doc/tutorial/object.tex:88"
+//#line 88 "doc/tutorial/object.tex"
+var p = Pair.clone;
+[00000000] (nil, nil)
+p.protos;
+[00000000] [(nil, nil)]
+
+syncline << "doc/tutorial/object.tex:99";
+[01234567:syncline] "doc/tutorial/object.tex:99"
+//#line 99 "doc/tutorial/object.tex"
+// List.head returns the first element.
+p.protos.head;
+[00000000] (nil, nil)
+// Check that the prototype is really Pair.
+p.protos.head === Pair;
+[00000000] true

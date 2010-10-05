@@ -1,0 +1,6 @@
+//#plug urbi/ultest
+
+var ultest = uobjects.ultest.new()|
+
+for (100)
+  ultest.f;

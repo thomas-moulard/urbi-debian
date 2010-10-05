@@ -1,0 +1,219 @@
+syncline << "doc/specs/dictionary.tex:26";
+[01234567:syncline] "doc/specs/dictionary.tex:26"
+//#line 26 "doc/specs/dictionary.tex"
+var d = ["one" => 1, "two" => 2];
+[00000001] ["one" => 1, "two" => 2]
+for (var p : d)
+  echo (p.first + " => " + p.second);
+[00000003] *** one => 1
+[00000002] *** two => 2
+"three" in d;
+[00000004] false
+d["three"];
+[00000005:error] !!! missing key: three
+d["three"] = d["one"] + d["two"] | {};
+"three" in d;
+[00000006] true
+d.getWithDefault("four", 4);
+[00000007] 4
+
+syncline << "doc/specs/dictionary.tex:57";
+[01234567:syncline] "doc/specs/dictionary.tex:57"
+//#line 57 "doc/specs/dictionary.tex"
+Dictionary.new("one", 1, "two", 2);
+[00000000] ["one" => 1, "two" => 2]
+Dictionary.new;
+[00000000] [ => ]
+
+syncline << "doc/specs/dictionary.tex:67";
+[01234567:syncline] "doc/specs/dictionary.tex:67"
+//#line 67 "doc/specs/dictionary.tex"
+["one" => 1, "two" => 2];
+[00000000] ["one" => 1, "two" => 2]
+[=>];
+[00000000] [ => ]
+
+syncline << "doc/specs/dictionary.tex:76";
+[01234567:syncline] "doc/specs/dictionary.tex:76"
+//#line 76 "doc/specs/dictionary.tex"
+[
+  "one" => 1,
+  "two" => 2,
+];
+[00000000] ["one" => 1, "two" => 2]
+
+syncline << "doc/specs/dictionary.tex:90";
+[01234567:syncline] "doc/specs/dictionary.tex:90"
+//#line 90 "doc/specs/dictionary.tex"
+assert {
+[ => ] == [ => ];
+["a" => 1, "b" => 2] == ["b" => 2, "a" => 1];
+};
+
+syncline << "doc/specs/dictionary.tex:99";
+[01234567:syncline] "doc/specs/dictionary.tex:99"
+//#line 99 "doc/specs/dictionary.tex"
+assert {
+["one" => 1]["one"] == 1;
+};
+
+syncline << "doc/specs/dictionary.tex:108";
+[01234567:syncline] "doc/specs/dictionary.tex:108"
+//#line 108 "doc/specs/dictionary.tex"
+{
+  var d = ["one" =>"2"];
+  assert
+  {
+    (d["one"] = 1) == 1;
+    d["one"] == 1;
+  };
+};
+
+syncline << "doc/specs/dictionary.tex:122";
+[01234567:syncline] "doc/specs/dictionary.tex:122"
+//#line 122 "doc/specs/dictionary.tex"
+assert {
+[=>].asBool == false;
+["key" => "value"].asBool == true;
+};
+
+syncline << "doc/specs/dictionary.tex:132";
+[01234567:syncline] "doc/specs/dictionary.tex:132"
+//#line 132 "doc/specs/dictionary.tex"
+assert {
+["one" => 1, "two" => 2].asList == [("one", 1), ("two", 2)];
+};
+
+syncline << "doc/specs/dictionary.tex:140";
+[01234567:syncline] "doc/specs/dictionary.tex:140"
+//#line 140 "doc/specs/dictionary.tex"
+{
+  var res = [];
+  for| (var entry: ["one" => 1, "two" => 2])
+    res << entry.second;
+  assert(res == [1, 2]);
+};
+
+syncline << "doc/specs/dictionary.tex:152";
+[01234567:syncline] "doc/specs/dictionary.tex:152"
+//#line 152 "doc/specs/dictionary.tex"
+assert {
+                [=>].asString == "[ => ]";
+["a" => 1, "b" => 2].asString == "[\"a\" => 1, \"b\" => 2]";
+};
+
+syncline << "doc/specs/dictionary.tex:161";
+[01234567:syncline] "doc/specs/dictionary.tex:161"
+//#line 161 "doc/specs/dictionary.tex"
+assert {
+["one" => 1].clear.empty;
+};
+
+syncline << "doc/specs/dictionary.tex:169";
+[01234567:syncline] "doc/specs/dictionary.tex:169"
+//#line 169 "doc/specs/dictionary.tex"
+assert {
+[=>].empty == true;
+["key" => "value"].empty == false;
+};
+
+syncline << "doc/specs/dictionary.tex:178";
+[01234567:syncline] "doc/specs/dictionary.tex:178"
+//#line 178 "doc/specs/dictionary.tex"
+assert {
+["one" => 1, "two" => 2].erase("two") == ["one" => 1]
+};
+
+syncline << "doc/specs/dictionary.tex:203";
+[01234567:syncline] "doc/specs/dictionary.tex:203"
+//#line 203 "doc/specs/dictionary.tex"
+assert(["one" => 1, "two" => 2].get("one") == 1);
+try
+{
+  ["one" => 1, "two" => 2].get("three");
+  echo("never reached");
+}
+catch (var e if e.isA(Dictionary.KeyError))
+{
+  assert(e.key == "three")
+};
+
+syncline << "doc/specs/dictionary.tex:221";
+[01234567:syncline] "doc/specs/dictionary.tex:221"
+//#line 221 "doc/specs/dictionary.tex"
+do (["one" => 1, "two" => 2])
+{
+  assert
+  {
+    getWithDefault("one",  -1) == 1;
+    getWithDefault("three", 3) == 3;
+  };
+}|;
+
+syncline << "doc/specs/dictionary.tex:236";
+[01234567:syncline] "doc/specs/dictionary.tex:236"
+//#line 236 "doc/specs/dictionary.tex"
+do (["one" => 1])
+{
+  assert(has("one"));
+  assert(!has("zero"));
+}|;
+
+syncline << "doc/specs/dictionary.tex:247";
+[01234567:syncline] "doc/specs/dictionary.tex:247"
+//#line 247 "doc/specs/dictionary.tex"
+assert {
+"one" in     ["one" => 1];
+"two" not in ["one" => 1];
+};
+
+syncline << "doc/specs/dictionary.tex:256";
+[01234567:syncline] "doc/specs/dictionary.tex:256"
+//#line 256 "doc/specs/dictionary.tex"
+Dictionary.clone.init("one", 1, "two", 2);
+[00000000] ["one" => 1, "two" => 2]
+
+syncline << "doc/specs/dictionary.tex:266";
+[01234567:syncline] "doc/specs/dictionary.tex:266"
+//#line 266 "doc/specs/dictionary.tex"
+{
+  var d = ["one" => 1, "two" => 2];
+  assert(d.keys == ["one", "two"]);
+  assert({
+           var res = [];
+           for (var k: d.keys)
+             res << d[k];
+           res
+         }
+         == [1, 2]);
+};
+
+syncline << "doc/specs/dictionary.tex:284";
+[01234567:syncline] "doc/specs/dictionary.tex:284"
+//#line 284 "doc/specs/dictionary.tex"
+{
+  // Match a subset of the dictionary.
+  ["a" => var a] = ["a" => 1, "b" => 2];
+  // get the matched value.
+  assert(a == 1);
+};
+
+syncline << "doc/specs/dictionary.tex:299";
+[01234567:syncline] "doc/specs/dictionary.tex:299"
+//#line 299 "doc/specs/dictionary.tex"
+[=>].set("one", 2).set("one", 1);
+[00000000] ["one" => 1]
+
+syncline << "doc/specs/dictionary.tex:308";
+[01234567:syncline] "doc/specs/dictionary.tex:308"
+//#line 308 "doc/specs/dictionary.tex"
+{
+  var d = [=>];
+  assert(d.size == 0);
+  d["a"] = 0;
+  assert(d.size == 1);
+  d["b"] = 1;
+  assert(d.size == 2);
+  d["a"] = 2;
+  assert(d.size == 2);
+};

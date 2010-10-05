@@ -1,0 +1,6 @@
+//#remote urbi/threaded
+
+Threaded.throwException(1);
+[00000001:error] !!! input.u:3.1-26: throwException: Exception while calling remote bound method: pan
+Threaded.throwException(0);
+[00000002:error] !!! input.u:5.1-26: throwException: Exception while calling remote bound method: Invalid exception

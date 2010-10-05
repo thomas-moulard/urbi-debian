@@ -1,0 +1,60 @@
+//#roscore
+//#no-fast
+//#plug urbi/ros
+
+var pub = Ros.Topic.new("/utests/play")|;
+pub.advertise("utopics/DoubleInt32")|;
+pub.structure;
+[00000001] ["a" => 0, "b" => 0]
+
+connect: at(pub.onConnect?(var name))
+{
+  lobby.send("connect: " + name)|
+  connected = true|;
+}|;
+disconnect: at(pub.onDisconnect?(var name))
+  lobby.send("disconnect: " + name);
+
+var p = Process.new("rosrun", ["utopics", "simpleReplay"])|;
+var connected = false|;
+p.run;
+[00000002] connect: /simpleReplay
+
+var sub = Ros.Topic.new("/utests/replay")|;
+replay: at(sub.onMessage?(var msg))
+  lobby.send(msg.asString);
+
+waituntil (connected);
+sub.subscribe;
+
+sleep(500ms);
+
+try
+{
+  pub << ["b" => 42];
+}
+catch (var e)
+{
+  lobby.send("Error while publishing");
+};
+[00000003] Error while publishing
+
+pub << ["a" => 51, "b" => 42];
+[00000004] ["a" => 51, "b" => 42]
+
+pub << ["a" => 0, "b" => -0.07];
+[00000005] ["a" => 0, "b" => 0]
+
+pub << ["a" => -16, "b" => 69862];
+[00000006] ["a" => -16, "b" => 69862]
+
+pub << ["a" => 1, "b" => 4];
+[00000007] ["a" => 1, "b" => 4]
+
+pub << ["a" => 1.5, "b" => -1.5];
+[00000008] ["a" => 1, "b" => -1]
+
+[00000009] disconnect: /simpleReplay
+
+// Wait a bit to receive the events properly.
+sleep(2s);

@@ -1,0 +1,40 @@
+//#plug urbi/all
+
+[00000001] Tag<shutdown>
+
+// The test input migth be sent in input.u, so we must be nonblocking.
+{
+  all.a = 1;
+  all.b = 1;
+  all.sendString("all.a  = 12,");
+  sleep(500ms);
+  echo(all.a);
+},
+[00000002] *** 12
+
+{
+  sleep(1s);
+  all.sendBuf("all.a = 13,all.b = 13,", 11);
+  sleep(500ms);
+  echo(all.a);
+  echo(all.b);
+},
+[00000003] *** 13
+[00000004] *** 1
+{
+  sleep(2s);
+  var Object.a = 1;
+  all.sendPar();
+  sleep(500ms);
+  echo(Object.a);
+},
+[00000005] *** 123
+
+// Test system inserts a "shutdown;" so block it and put our own
+
+// Force tag creation for k2.
+var tag = Tag.new("shutdown");
+tag: {};
+{sleep(3s) | shutdown},
+tag.block;
+tag:

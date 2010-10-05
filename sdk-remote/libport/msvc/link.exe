@@ -1,0 +1,916 @@
+#! /bin/bash
+
+# Copyright (C) 2008-2010, Gostai S.A.S.
+#
+# This software is provided "as is" without warranty of any kind,
+# either expressed or implied, including but not limited to the
+# implied warranties of fitness for a particular purpose.
+#
+# See the LICENSE file for more information.
+
+# Wrapper to use Microsoft compiler and linker under wine with
+# Autotools.
+
+# TODO:
+#
+# - This does not support concurrency, at least I fear it does not
+#   because ndbm does not.
+#
+# - a test suite :(  Many bugs were regularly introduced.
+#
+# - support link.exe -dump -symbols
+#   currenty we do junk
+
+set -e
+
+trace ()
+{
+  case $VERBOSE in (x)
+    set -x;;
+  esac
+}
+
+trace
+
+me=$(basename "$0")
+
+stderr ()
+{
+  local i
+  for i
+  do
+    echo >&2 "$me (wrapper): $i"
+  done
+}
+
+run ()
+{
+  verbose "run: $*"
+  "$@"
+}
+
+error ()
+{
+  local exit="$1"
+  shift
+  stderr "$@"
+  exit $exit
+}
+
+verbose ()
+{
+  # Don't
+  case "$verbose: $VERBOSE " in
+    (true:* | *" cl.exe "* | *" link.exe "* | *" x "*)
+      stderr "$@"
+      ;;
+  esac
+}
+
+fatal ()
+{
+  error 1 "$@"
+}
+
+transform ()
+{
+  case $1 in
+    ('') verbose "warning: empty argument passed to transform";;
+    (/*) $repath -w "$1";;
+    (*)  echo "$1";;
+  esac
+}
+
+# handle_lib -lLIB
+# ----------------
+# Convert a cc-like link-option (such a -lboost-date-time) into a library
+# name against which we will link.
+#
+# One issue is whether to link against libLIB.lib or LIB.lib.  It appears
+# that LIB.lib seems to be used for dlls, and libLIB.lib for static libs.
+# So since we now support dlls, if both are present, prefer LIB.lib.
+handle_lib ()
+{
+  local lib=$1
+
+  # If $systemlibs is not defined, set it up.  It saves time (and
+  # traces) to do it only on demand instead of always.
+  system_libs=$medir/system-libs.txt
+  test -f $system_libs ||
+  {
+    # The libs we produce are called libfoo.lib, whereas the system
+    # libs are called foo.lib.
+    # FIXME: Use external variables.  Need to find Boost and the like.
+    local i
+    local libdirs
+    set x
+    for i in                                    \
+      "$HOME/local/usr/lib"                     \
+      "$HOME/local"                             \
+      "$VS_PATH/Lib"                            \
+      "$VCXX_PATH/Lib"                          \
+      "$VCXX_PATH/PlatformSDK/Lib"              \
+      "$VS_PATH/PlatformSDK/Lib"                \
+      "$($repath -u "$LIBPATH")"                \
+      $EXTRA_LIBRARY_PATH
+    do
+      test ! -d "$i" ||
+        set "$@" "$i"
+    done
+    shift
+    verbose "systemlib dirs:" "$@"
+
+    find -L "$@" -iname '*.lib' |
+      # We tried to keep the original case, but it was a PITA, since,
+      # at least in our environment, some libraries (ws2_32) as two
+      # different cases: WS2_32 for Visual, and ws2_32 for mingw.
+      # Keep it stupid simple.
+        tr A-Z a-z |
+        sort -u |
+        tr -d '\r' >$system_libs.tmp
+    mv -f $system_libs.tmp $system_libs
+    verbose "systemlibs:" "$(cat $system_libs)"
+  }
+
+  local base
+  base=$(echo "${lib#-l}.lib" | tr A-Z a-z)
+  local res
+  # If $base is not in $system_libs, prepend "lib".
+  verbose "consulting $system_libs for $base"
+  if grep -q "/$base\$" <$system_libs; then
+    res=$base
+  else
+    res=lib$base
+  fi
+  handle_lib_res=$(transform "$res")
+  verbose "handle_lib: $lib -> $handle_lib_res"
+}
+
+# dll_2_lib ()
+# ------------
+# Return the name of the corresponding *.lib.
+dll_2_lib ()
+{
+  echo "$1" | sed -re 's/(-[0-9]*)?.dll/.lib/'
+}
+
+# append VARIABLE VALUES...
+# -------------------------
+# Append the VALUES to $VARIABLE, making sure it has all the needed
+# escapes.  Separates with spaces.
+append ()
+{
+  local var="$1"
+  shift
+  local val
+  for val
+  do
+    case $val in
+      (*[''""\\\\\<\>\*\;\|]*)
+        # We use printf to avoid backslash-interpolation.
+        val="'"$(printf '%s' "$val" | sed -e 's/[''""\\\\]/\\&/g')"'"
+        ;;
+    esac
+    # Avoid useless spaces.
+    eval "$var+=\${$var:+ }\$val"
+  done
+#  eval verbose "$var=\$$var"
+}
+
+# linkargs ARG...
+# ---------------
+# Append to $linkargs.
+linkargs ()
+{
+  append linkargs "$@"
+}
+
+# outargs ARG...
+# --------------
+# Append to $outargs.
+outargs ()
+{
+  append outargs "$@"
+}
+
+usage ()
+{
+   cat <<EOF
+This MSVC++ wrapper presents a CC-like interface.  It adds some options
+of its own.
+
+Options:
+  --help          display this message and that of MSVC and exit
+  --runtime=KIND  specify whether using "debug" or "release" runtime
+                  [$runtime]
+  --version       display the version of this script and that of MSVC and exit
+  --verbose       display debugging information about this script
+
+MSVC help:
+                         C/C++ COMPILER OPTIONS
+
+
+                              -OPTIMIZATION-
+
+/O1 minimize space                      /O2 maximize speed
+/Ob<n> inline expansion (default n=0)   /Od disable optimizations (default)
+/Og enable global optimization          /Oi[-] enable intrinsic functions
+/Os favor code space                    /Ot favor code speed
+/Ox maximum optimizations               /Oy[-] enable frame pointer omission
+
+                             -CODE GENERATION-
+
+/GF enable read-only string pooling     /Gm[-] enable minimal rebuild
+/Gy[-] separate functions for linker    /GS[-] enable security checks
+/GR[-] enable C++ RTTI                  /GX[-] enable C++ EH (same as /EHsc)
+/EHs enable C++ EH (no SEH exceptions)  /EHa enable C++ EH (w/ SEH exceptions)
+/EHc extern "C" defaults to nothrow
+/fp:<except[-]|fast|precise|strict> choose floating-point model:
+    except[-] - consider floating-point exceptions when generating code
+    fast - "fast" floating-point model; results are less predictable
+    precise - "precise" floating-point model; results are predictable
+    strict - "strict" floating-point model (implies /fp:except)
+/GL[-] enable link-time code generation /GA optimize for Windows Application
+/Ge force stack checking for all funcs  /Gs[num] control stack checking calls
+/Gh enable _penter function call        /GH enable _pexit function call
+/GT generate fiber-safe TLS accesses    /RTC1 Enable fast checks (/RTCsu)
+/RTCc Convert to smaller type checks    /RTCs Stack Frame runtime checking
+/RTCu Uninitialized local usage checks
+/clr[:option] compile for common language runtime, where option is:
+    pure - produce IL-only output file (no native executable code)
+    safe - produce IL-only verifiable output file
+    oldSyntax - accept the Managed Extensions syntax from Visual C++ 2002/2003
+    initialAppDomain - enable initial AppDomain behavior of Visual C++ 2002
+    noAssembly - do not produce an assembly
+/Gd __cdecl calling convention          /Gr __fastcall calling convention
+/Gz __stdcall calling convention        /GZ Enable stack checks (/RTCs)
+/QIfist[-] use FIST instead of ftol()
+/hotpatch ensure function padding for hotpatchable images
+/arch:<SSE|SSE2> minimum CPU architecture requirements, one of:
+    SSE - enable use of instructions available with SSE enabled CPUs
+    SSE2 - enable use of instructions available with SSE2 enabled CPUs
+
+                              -OUTPUT FILES-
+
+/Fa[file] name assembly listing file    /FA[scu] configure assembly listing
+/Fd[file] name .PDB file                /Fe<file> name executable file
+/Fm[file] name map file                 /Fo<file> name object file
+/Fp<file> name precompiled header file  /Fr[file] name source browser file
+/FR[file] name extended .SBR file
+/doc[file] process XML documentation comments and optionally name the .xdc file
+
+                              -PREPROCESSOR-
+
+/AI<dir> add to assembly search path    /FU<file> forced using assembly/module
+/C don't strip comments                 /D<name>{=|#}<text> define macro
+/E preprocess to stdout                 /EP preprocess to stdout, no #line
+/P preprocess to file                   /Fx merge injected code to file
+/FI<file> name forced include file      /U<name> remove predefined macro
+/u remove all predefined macros         /I<dir> add to include search path
+/X ignore "standard places"
+
+                                -LANGUAGE-
+
+/Zi enable debugging information        /Z7 enable old-style debug info
+/Zp[n] pack structs on n-byte boundary  /Za disable extensions
+/Ze enable extensions (default)         /Zl omit default library name in .OBJ
+/Zg generate function prototypes        /Zs syntax check only
+/vd{0|1|2} disable/enable vtordisp      /vm<x> type of pointers to members
+/Zc:arg1[,arg2] C++ language conformance, where arguments can be:
+    forScope[-] - enforce Standard C++ for scoping rules
+    wchar_t[-] - wchar_t is the native type, not a typedef
+/ZI enable Edit and Continue debug info
+/openmp enable OpenMP 2.0 language extensions
+
+                              -MISCELLANEOUS-
+
+@<file> options response file           /?, /help print this help message
+/bigobj generate extended object format /c compile only, no link
+/errorReport:option Report internal compiler errors to Microsoft
+    none - do not send report
+    prompt - prompt to immediately send report
+    queue - at next admin logon, prompt to send report (default)
+    send - send report automatically
+/FC use full pathnames in diagnostics   /H<num> max external name length
+/J default char type is unsigned        /nologo suppress copyright message
+/showIncludes show include file names   /Tc<source file> compile file as .c
+/Tp<source file> compile file as .cpp   /TC compile all files as .c
+/TP compile all files as .cpp           /V<string> set version string
+/w disable all warnings                 /wd<n> disable warning n
+/we<n> treat warning n as an error      /wo<n> issue warning n once
+/w<l><n> set warning level 1-4 for n    /W<n> set warning level (default n=1)
+/Wall enable all warnings               /WL enable one line diagnostics
+/WX treat warnings as errors            /Yc[file] create .PCH file
+/Yd put debug info in every .OBJ        /Yl[sym] inject .PCH ref for debug lib
+/Yu[file] use .PCH file                 /Y- disable all PCH options
+/Zm<n> max memory alloc (% of default)  /Wp64 enable 64 bit porting warnings
+
+                                -LINKING-
+
+/LD Create .DLL                         /LDd Create .DLL debug library
+/LN Create a .netmodule                 /F<num> set stack size
+/link [linker options and libraries]    /MD link with MSVCRT.LIB
+/MT link with LIBCMT.LIB                /MDd link with MSVCRTD.LIB debug lib
+/MTd link with LIBCMTD.LIB debug lib
+
+
+See also <URL:http://msdn.microsoft.com/en-us/library/fwkeyyhe.aspx>.
+EOF
+  exit 0
+}
+
+# This is mostly to please configure.
+version ()
+{
+  cat <<EOF
+MS VC++ wrapper.
+
+EOF
+  # Simply don't pass /nologo.
+  # The version info is on stderr.
+  "$VCXX_BIN/cl.exe" 2>&1 >/dev/null
+  exit 0
+}
+
+# handle option -o
+# ----------------
+get_options__o ()
+{
+  output=$1
+  case $mode:$output in
+      (*:/dev/null) output=$tmp/discarded-output;;
+      (:*.o|:*.obj) mode=compile;;
+      (:*.i|:*.ii)  mode=preprocess;;
+  esac
+  # if echo $1 | grep -q .exe; then PROG=link.exe ; fi
+}
+
+get_options ()
+{
+  verbose "arguments: $*"
+  while test $# -ne 0
+  do
+    case $1 in
+    (--help)    usage;;
+    (--version) version;;
+    (--verbose) verbose=true;;
+    (-v)        compiler_verbose=true;;
+    (--runtime=*) runtime=${1#--runtime=};;
+    (--runtime)   runtime=$2             ; shift;;
+    (-Wl,--runtime=*) runtime=${1#-Wl,--runtime=};;
+
+    # Libraries.
+    (-link) ;;
+    (-dll)  linkargs "/DLL";;
+    (-L )   linkargs "-LIBPATH:$(transform "$2")"     ; shift;;
+    (-L*)   linkargs "-LIBPATH:$(transform "${1#-L}")";;
+    (-l*)   handle_lib "$1"
+            linkargs "$handle_lib_res";;
+
+    # Preprocessor options.
+    (-E)  mode=preprocess; outargs "$1";;
+    (-I|-isystem) outargs "-I$(transform "$2")"     ; shift;;
+    (-I*) outargs "-I$(transform "${1#-I}")";;
+
+    # Dependencies.
+    # Automake invocations look like:
+    #   $(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $<
+    (-MT) # -MT DEPENDENCY-TARGET.
+          shift
+          deps_target=$1;;
+    (-MD) # -MD triggers the generation of the dependencies.
+          # The documentation says that this goes to stderr.  This is
+          # not accurate: it goes to stderr if stdout is used for
+          # actual output (e.g., -E without -o), otherwise it goes to
+          # stdout.
+          # FIXME: handle this case.
+          outargs -showIncludes;;
+    (-MP) # Add phony target for each dependency other than the main file.
+          deps_phony=true;;
+    (-MF) # -MF DEPENDENCY-FILE.
+          shift
+          deps_file=$1;;
+    (-c)  mode=compile; outargs "$1";;
+    (-o)  get_options__o "$2"; shift;;
+    (-o*) get_options__o "${1#-o}";;
+    (-Wno-unused-parameter)
+         # Flags passed by careless tools, such as Bjam.
+        ;;
+    (-Wno-inline)
+        outargs -wd4710
+        ;;
+    (-g|-ggdb) ;; # outargs "-Zi";;
+
+    # Optimizations.
+    (-fno-strict-aliasing);;
+    (-fno-inline);;
+    (-O0) ;;
+    (-O2) outargs "$1";;
+    (-O3) outargs -Ox;;
+
+    # Language selection.
+    (-x) shift
+      case $1 in
+        (c)   outargs "-TC";;
+        (c++) outargs "-TP";;
+      esac;;
+
+    (*.lib) linkargs "$(transform "$1")";;
+    (*.a)   linkargs "$(transform "${1%.a}.lib")";;
+    (*.dll) outargs "$(transform "$(dll_2_lib "$1")")";;
+
+    # Sources.
+    (-include)  shift;     outargs "-FI$(transform "$1")";;
+    (*.S)       source=$1; outargs "-Tp$(transform "$source")";;
+    (*.c|*.cc)  source=$1; outargs    "$(transform "$source")";;
+    (*.i)       source=$1; outargs "-Tc$(transform "$source")"
+                preprocessed=true;;
+    (*.ii)      source=$1; outargs "-Tp$(transform "$source")"
+                preprocessed=true;;
+    (/dev/null) source=$tmp/null-input
+                touch $source
+                outargs "$(transform "$source")";;
+    # Unknown stuff.
+    (*)        outargs "$1";;
+    esac
+    shift
+  done
+}
+
+dos2unix ()
+{
+  # Sed is easier to use than tr, which works on stdin only.
+  sed -e 's/\r//' "$@"
+}
+
+
+# dump_log FILE
+# -------------
+# Process the $FILE which is the output from cl.exe.  Process the
+# deps_file if requested.  Send to stderr what remains.
+dump_log ()
+{
+  local file="$1"
+  verbose "processing log file $file"
+  perl -e "my \$deps_file = '$deps_file';" \
+       -e "my \$deps_phony = '$deps_phony';" \
+       -e "my \$deps_target = '$deps_target';" \
+       -e "my \$medir = '$medir';" \
+       -e "my \$repath = '$repath';" \
+       -e "my \$source = '$source';" \
+       -e "my \$verbose = '$verbose' eq 'true';" \
+       -e '
+#! /usr/bin/perl
+
+use Cwd (getcwd);
+use English;
+use Fcntl;   # For O_RDWR, O_CREAT, etc.
+use File::Path (mkpath);
+use File::Basename;
+use DBI;
+
+# A file into which we store the conversion table.  We do not leave
+# this file in the current directory: trailing files that all our
+# "clean" rules should be educated to handle (including foreign
+# packages such as libjpeg).  A useless burden.
+my $cache_dir = $medir;
+my $cache_file = "$cache_dir/$repath.cache";
+
+if (! -d $cache_dir)
+{
+  mkpath $cache_dir
+    or warn "cannot create $cache_dir";
+}
+
+# Do not let errors show up: they cause ccache to not cache.
+#
+# On Cygwin the directory component of the dbname is ignored.  To work
+# around this issue, look for Win32.pm (something like
+# /usr/lib/perl5/5.10/i686-cygwin/Win32.pm), and replace
+#
+# $real = join '', grep { defined } Win32::GetShortPathName($dir), $file, $suffix;
+
+# with
+#
+# $real = join '', Win32::GetShortPathName($dir), $file, $suffix
+#   if defined Win32::GetShortPathName($dir);
+#
+my $dbh = DBI->connect("dbi:SQLite:dbname=$cache_file", "", "",
+                       {
+                         PrintError => 0,
+                         RaiseError => 0,
+                       })
+  || die "cannot connect to $cache_file: $DBI::errstr";
+
+# It will fail if the db exists.
+eval {
+  $dbh->do("CREATE TABLE files
+            (
+               windows VARCHAR NOT NULL PRIMARY KEY,
+               unix VARCHAR NOT NULL
+            )");
+};
+
+# Convert a single path from Windows to linux.
+sub convert_path ($)
+{
+  my ($path) = @_;
+  my $res;
+
+  # Check whether SQLite knows it.
+  my $rows =
+    $dbh->selectrow_arrayref("SELECT unix FROM files WHERE windows = ?",
+                             {},
+                             $path);
+
+  if (defined $rows)
+  {
+    $res = $rows->[0];
+  }
+  else
+  {
+    # Not yet cached.
+    #
+    # Do not convert files that do not need it, as it makes them
+    # longer (from relative to absolute).
+    #
+    # Two different kinds of changes are needed.
+    #
+    # Absolute paths need to be handled by winepath.  Relative paths
+    # should be kept relative so that Make can track dependencies
+    # properly (Make does not like files addressed under different
+    # names, such as absolute vs. relative).
+    #
+    # Unfortunately MSVC sometimes mixes forward- and backward-
+    # slashes (if for instance you use forward slash in -Ifoo/bar, it
+    # will use a backslash and result in "foo/bar\baz.h").  Since
+    # apparently there is no problem with using slashes instead of
+    # backslashes, let us first use only slashes.
+
+    $res = $path;
+    # For some reason, the outcome looks like
+    # "C:\\vcxx8\\VC\\INCLUDE\istream", with some backslashes escaped,
+    # and not others.
+    $res =~ s,\\\\?,/,g;
+    if ($res =~ /^\w:/)
+    {
+      # Convert them to Linux format.
+      $res = `$repath -u "$res"`;
+      chomp $res;
+    }
+    # Save in SQLite.
+    $dbh->do("INSERT INTO files VALUES (?,?)", {},
+             $path, $res);
+  }
+  print STDERR "convert: $path -> $res\n"
+    if $verbose;
+  return $res;
+}
+
+my %res;
+while (<>)
+{
+  chop;
+  s/\r$//;
+  if (
+      # For some (bad) reason, cl.exe dumps on STDOUT the name of the
+      # file being compiled.  This makes ccache believe something went
+      # wrong, in which case it does not cache.
+      #
+      # Usually it is on the first line, but Wine sometimes issues
+      # warnings before.
+      ($_ eq basename $source)
+      ||
+      # cl : Command line warning D9024 :
+      # unrecognized source file type '"'"'FOO.o'"'"', object file assumed
+      /Command line warning D9024 : unrecognized source file type '"'"'.*\.o'"'"'/
+      ||
+      # LINK : warning LNK4068: /MACHINE not specified; defaulting to X86
+      m{LINK : warning LNK4068: /MACHINE not specified; defaulting to X86}
+      ||
+      # Bad features from Wine.
+      m{fixme:heap:HeapSetInformation \(nil\) 1 \(nil\) 0}
+      ||
+      m{fixme:ole:NdrCorrelationInitialize (.*): stub}
+      ||
+      m{fixme:ole:NdrCorrelationFree (.*): stub}
+      ||
+      m{fixme:rpc:NdrStubCall2 new correlation description not implemented}
+      ||
+      m{err:secur32:SECUR32_initSchannelSP libgnutls not found, SSL connections will fail}
+      )
+  {
+    print STDERR "Ignoring: {{{$_}}}\n"
+      if $verbose;
+  }
+  # Note: including file: C:\\vcxx8\\VC\\INCLUDE\iostream
+  # Note: including file:  C:\\vcxx8\\VC\\INCLUDE\istream
+  elsif (s/Note: including file: *//)
+  {
+    $res{$_} = 1;
+  }
+  else
+  {
+    # Convert paths to ease debugging under Unix.
+    # Convert the "notes" syntax from MSVC to GCC: put the indentation
+    # after the location, and insert "note:" so that Emacs know that
+    # this is not another error, but a single multi-line error.
+    s{^(\s*)([:\-\w\\\\/.]+)\((\d+)\)\s*:}
+     {convert_path ($2) . ":$3:" . ($1 ? " note:$1" : "")}e;
+    print STDERR "$_\n";
+  }
+}
+
+# Generate the dependency.
+if ($deps_file)
+{
+  my @files = map { convert_path($_) } sort keys %res;
+
+  # Make does not like colons in file names, which is something that
+  # does happen with cl.exe
+  # (/home/build/.wine/dosdevices/c:/vcxx8/VC/include/stdio.h).
+  # Escape them.  Spaces are a problem too.  They seem to be well
+  # accepted by GNU Make on Cygwin.
+  map { s/[\s:]/\\$&/g } @files;
+  $source =~ s/[\s:]/\\$1/g;
+
+  use IO::File;
+  my $deps = new IO::File ">$deps_file"
+    or die "cannot create $deps_file: $!\n";
+  print $deps join ("\t\\\n  ", "$deps_target: $source", @files), "\n";
+
+  if ($deps_phony)
+  {
+    map { print $deps "$_:\n\n"; } @files;
+  }
+}
+
+print STDERR "DB errors: $DBI::errstr\n"
+  if $verbose && $dbh->err;
+$dbh->disconnect;
+' < $file
+  ! $compiler_verbose ||
+    compiler_verbose_message >&2
+}
+
+
+# The plan here is to help distcc-pump.  It relies on -v to get
+# the list of the include directories.
+#
+# Gcc -v dumps the following:
+#
+# Using built-in specs.
+# Target: i686-apple-darwin9
+# Configured with: /var/tmp/gcc/gcc-5484~1/src/configure --disable-checking -enable-werror --prefix=/usr --mandir=/share/man --enable-languages=c,objc,c++,obj-c++ --program-transform-name=/^[cg][^.-]*$/s/$/-4.0/ --with-gxx-include-dir=/include/c++/4.0.0 --with-slibdir=/usr/lib --build=i686-apple-darwin9 --with-arch=apple --with-tune=generic --host=i686-apple-darwin9 --target=i686-apple-darwin9
+# Thread model: posix
+# gcc version 4.0.1 (Apple Inc. build 5484)
+#  /usr/libexec/gcc/i686-apple-darwin9/4.0.1/cc1plus -quiet -v -D__DYNAMIC__ /dev/null -fPIC -quiet -dumpbase null -mmacosx-version-min=10.5.6 -mtune=generic -march=apple -auxbase-strip /dev/null -version -D__private_extern__=extern -o /var/folders/hy/hy4Qz3qs2RWPcU+8ZQWaqU+++TI/-Tmp-//cczPgOv5.s
+# ignoring nonexistent directory "/usr/lib/gcc/i686-apple-darwin9/4.0.1/../../../../i686-apple-darwin9/include"
+# #include "..." search starts here:
+# #include <...> search starts here:
+#  /usr/include/c++/4.0.0
+#  /usr/include/c++/4.0.0/i686-apple-darwin9
+#  /usr/include/c++/4.0.0/backward
+#  /usr/local/include
+#  /usr/lib/gcc/i686-apple-darwin9/4.0.1/include
+#  /usr/include
+#  /System/Library/Frameworks (framework directory)
+#  /Library/Frameworks (framework directory)
+# End of search list.
+# GNU C++ version 4.0.1 (Apple Inc. build 5484) (i686-apple-darwin9)
+#       compiled by GNU C version 4.0.1 (Apple Inc. build 5484).
+# GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+# Compiler executable checksum: 26a07d3b4fce49bea6ac55e876df1aa9
+#  /usr/libexec/gcc/i686-apple-darwin9/4.0.1/as -arch i386 -force_cpusubtype_ALL -o /dev/null /var/folders/hy/hy4Qz3qs2RWPcU+8ZQWaqU+++TI/-Tmp-//cczPgOv5.s
+#
+# FIXME: support the SQLite DB here too.
+compiler_verbose_message ()
+{
+  perl -e "my \$repath = '$repath';" \
+    -e '
+    print "#include \"...\" search starts here:\n";
+    print "#include <...> search starts here:\n";
+    for my $d (split (";", $ENV{"INCLUDE"}))
+    {
+      print " " . `$repath -u "$d"`;
+    }
+    print "End of search list.\n";
+'
+}
+
+# Look for, and load, `msvc_env.sh'.
+load_msvc_env ()
+{
+  local i
+  # Skip if we can't run it.
+  for i in ~/share/wine ~/.wine/drive_c "$(dirname "$0")" ~/bin
+  do
+    local f="$i/msvc_env.sh"
+    verbose "trying to load $f"
+    if test -f "$f"; then
+      . "$f"
+      verbose "loaded $f"
+      return 0
+    fi
+  done
+  return 1
+}
+
+
+## ------ ##
+## Main.  ##
+## ------ ##
+
+# Compiler verbosity (-v).
+compiler_verbose=false
+# File containing the dependencies.
+deps_file=
+# Target of the dependencies (i.e., lhs in the make rule).
+deps_target=
+deps_phony=false
+linkargs=
+# mode=compile|link|preprocess
+mode=
+# Output file name.
+output=
+# Whether the source was already preprocessed (i.e., *.i or *.ii).
+preprocessed=false
+# The kind of runtime we use: debug|release.
+runtime=release
+# Input file name.
+source=
+# Wrapper verbosity.
+#
+# Do not fire verbosity when VERBOSE=1, as for instance the libport
+# tests set VERBOSE to 1 to get the test logs.  But then the
+# compilation itself becomes verbose and clutters the output, which in
+# turn defeats the use of ccache.
+case " $VERBOSE " in
+  (*" cl.exe "* | *" link.exe "* | *" x "*)  verbose=true;;
+  (*)                                        verbose=false;;
+esac
+
+PROG=$me
+
+# Make it easier use under a regular host.  Process our own options
+# early enough.
+for i
+do
+  case $i in
+    (--help) usage;;
+    (--verbose) verbose=true;;
+  esac
+done
+
+: ${TMPDIR=/tmp}
+medir=$TMPDIR/$me.dir
+tmp=$medir/$$
+case $VERBOSE in
+  (x) ;;
+  (*) trap "exit=\$?; rm -rf $tmp; exit \$exit" 0;;
+esac
+mkdir -p $tmp
+stdout=$tmp/stdout
+stderr=$tmp/stderr
+
+load_msvc_env ||
+  error 176 "cannot load msvc_env.sh"
+
+repaths='cygpath winepath'
+for repath in $repaths ''
+do
+  $repath --version >/dev/null 2>&1 &&
+    break
+done
+test -n "$repath" ||
+  error 176 "program not found: $repaths"
+
+VS_PATH=$($repath -u "$VSINSTALLDIR")
+VCXX_PATH=$($repath -u "$VCINSTALLDIR")
+VCXX_BIN=$VCXX_PATH/bin
+
+test -x "$VCXX_BIN/cl.exe" ||
+  error 176 "cl.exe not found in $VCXX_BIN"
+
+case $PROG in
+  (cl.exe) outargs "-nologo" "-EHsc";;
+esac
+
+get_options "$@"
+
+case $runtime in
+  (debug)   outargs '-MDd';;
+  (release) outargs '-MD';;
+  (*) fatal "invalid \$runtime: $runtime";;
+esac
+
+case $mode in
+  (compile)
+    # -c without -o.
+    test -n "$output" ||
+      output=$(basename "$source" | sed -re 's/\.[^.]+$/.obj/')
+    outargs "-Fo$(transform "$output")";;
+  (preprocess)  ;;
+  (*) # Probably linking.
+    mode=link
+    case $PROG in
+      (link.exe) outargs "-OUT:$(transform "$output")";;
+      (*)        outargs "-Fe$(transform "$output")";;
+    esac
+    linkargs "-SUBSYSTEM:console" "-MANIFEST" "Kernel32.Lib"
+    ;;
+esac
+
+if test "$PROG" = cl.exe && test -n "$linkargs"; then
+#  test -z "$mode"
+#  mode=link
+  outargs "-link"
+  outargs+=" $linkargs"
+  linkargs=
+fi
+
+verbose "mode: $mode"
+
+# Shell tracing must not be activate here, otherwise shell traces
+# will be included in stderr.
+cmd="\"$VCXX_BIN/$PROG\" $outargs $linkargs"
+verbose "Running: $cmd"
+set +x +e
+eval "$cmd" >$stdout 2>$stderr
+status=$?
+trace
+set -e
+
+# If we are fed with a preprocessed input, do not generate the
+# deps_file.  This is needed by ccache, and anyway, this is just
+# logical: it is the preprocessor that knows the #includes, the
+# compiler knows nothing.
+! $preprocessed ||
+  deps_file=
+
+# In cpp mode (/E), vc produces on stdout.  Honor -o.  Beware that
+# output is the output of the script, not of the compiler.  When the
+# compiler outputs to stdout, the logs are in stderr.  Otherwise the
+# logs are on stdout.  Put everything on stderr, this is more
+# Unix-style.
+case $mode:$output in
+  (preprocess:)
+     dump_log $stderr
+     dos2unix <$stdout;;
+  (preprocess:*)
+     dump_log $stderr
+     dos2unix <$stdout >"$(transform "$output")";;
+  (*:)
+     dump_log $stderr
+     dump_log $stdout >&2;;
+  (*:*)
+     dump_log $stderr >&2
+     dump_log $stdout;;
+esac
+
+test $status -eq 0 ||
+  exit $status
+
+#embed manifest
+#if echo $output | egrep -q '(exe|dll)$'; then
+#  $VCXX_BIN/mt.exe -manifest "$(transform $output.manifest)" -outputresource:"$(transform $output);1"
+#  rm "$output.manifest"
+#fi
+
+# embed manifest by compiling it into a resource to avoid mt.exe crash with
+# -outputresource when using Wine
+# Following procedure described at:
+# http://msdn.microsoft.com/fr-fr/library/ms235591.aspx
+case $repath:$output in
+  (winepath:*.exe|winepath:*.dll)
+  #$VCXX_BIN/mt.exe -manifest "$(transform $output).manifest" "-out:$(transform $output).auto.manifest"
+  # Escape quotes
+  sed -e 's/"/""/g' < "$output.manifest" > "$output.escaped.manifest"
+  cat >"$output.auto.rc" <<EOF
+#include <winuser.h>
+1 RT_MANIFEST {"$(cat $output.escaped.manifest)"}
+EOF
+  run "$VCXX_BIN/rc.exe" -r "$(transform $output).auto.rc"
+  cmd="\"$VCXX_BIN/$PROG\" $outargs $linkargs \"$(transform $output).auto.RES\""
+  verbose "Running: $cmd"
+  status=0
+  eval "$cmd" >$stdout 2>$stderr || status=$?
+  dump_log $stderr
+  dump_log $stdout
+  rm -f "$output".{auto.{manifest,rc,RES},{escaped,intermediate}.manifest,manifest}
+  test $status -eq 0 ||
+    error $status "$cmd failed with status = $status"
+  ;;
+esac
+
+# Rename .lib with a versioned name.
+case $output in
+ (*-[0-9.]*.dll)
+  libname=${output%.dll}.lib
+  if test -f "$libname"; then
+    run mv -f $libname $(dll_2_lib "$output")
+  fi
+  ;;
+esac
+
+exit 0

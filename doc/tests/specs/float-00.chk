@@ -1,0 +1,530 @@
+syncline << "doc/specs/float.tex:40";
+[01234567:syncline] "doc/specs/float.tex:40"
+//#line 40 "doc/specs/float.tex"
+assert {
+0 == 0000.0000;
+// This is actually a call to the unary '+'.
++1 == 1;
+0.123456 == 123456 / 1000000;
+1e3 == 1000;
+1e-3 == 0.001;
+1.234e3 == 1234;
+};
+
+syncline << "doc/specs/float.tex:53";
+[01234567:syncline] "doc/specs/float.tex:53"
+//#line 53 "doc/specs/float.tex"
+assert {
+Math.log(0) == -inf;
+Math.exp(-inf) == 0;
+(inf/inf).isNan;
+};
+
+syncline << "doc/specs/float.tex:62";
+[01234567:syncline] "doc/specs/float.tex:62"
+//#line 62 "doc/specs/float.tex"
+assert {
+Float.new == 0;
+};
+
+syncline << "doc/specs/float.tex:71";
+[01234567:syncline] "doc/specs/float.tex:71"
+//#line 71 "doc/specs/float.tex"
+assert {
+(-5).abs == 5;
+  0 .abs == 0;
+  5 .abs == 5;
+};
+
+syncline << "doc/specs/float.tex:79";
+[01234567:syncline] "doc/specs/float.tex:79"
+//#line 79 "doc/specs/float.tex"
+assert {
+0.acos == Float.pi/2;
+1.acos == 0;
+};
+
+syncline << "doc/specs/float.tex:86";
+[01234567:syncline] "doc/specs/float.tex:86"
+//#line 86 "doc/specs/float.tex"
+assert {
+0.asBool == false;
+0.1.asBool == true;
+(-0.1).asBool == true;
+inf.asBool == true;
+nan.asBool == true;
+};
+
+syncline << "doc/specs/float.tex:96";
+[01234567:syncline] "doc/specs/float.tex:96"
+//#line 96 "doc/specs/float.tex"
+assert {
+51.asFloat == 51;
+};
+
+syncline << "doc/specs/float.tex:103";
+[01234567:syncline] "doc/specs/float.tex:103"
+//#line 103 "doc/specs/float.tex"
+assert {
+{
+  var res = [];
+  for (var i : 3)
+    res << i;
+  res
+}
+== [0, 1, 2];
+
+{
+  var res = [];
+  for|(var i : 3)
+    res << i;
+  res
+}
+== [0, 1, 2];
+
+{
+  var res = [];
+  for&(var i : 3)
+    res << i;
+  res.sort
+}
+== [0, 1, 2];
+};
+
+syncline << "doc/specs/float.tex:131";
+[01234567:syncline] "doc/specs/float.tex:131"
+//#line 131 "doc/specs/float.tex"
+assert {
+0.asin == 0;
+};
+
+syncline << "doc/specs/float.tex:137";
+[01234567:syncline] "doc/specs/float.tex:137"
+//#line 137 "doc/specs/float.tex"
+assert {
+         42.asString == "42";
+      42.51.asString == "42.51";
+21474836470.asString == "21474836470";
+};
+
+syncline << "doc/specs/float.tex:145";
+[01234567:syncline] "doc/specs/float.tex:145"
+//#line 145 "doc/specs/float.tex"
+assert {
+0.atan == 0;
+1.atan == Float.pi/4;
+};
+
+syncline << "doc/specs/float.tex:152";
+[01234567:syncline] "doc/specs/float.tex:152"
+//#line 152 "doc/specs/float.tex"
+assert {
+(3 bitand 6) == 2;
+};
+
+syncline << "doc/specs/float.tex:158";
+[01234567:syncline] "doc/specs/float.tex:158"
+//#line 158 "doc/specs/float.tex"
+assert {
+(3 bitor 6) == 7;
+};
+
+syncline << "doc/specs/float.tex:164";
+[01234567:syncline] "doc/specs/float.tex:164"
+//#line 164 "doc/specs/float.tex"
+assert {
+     0.ceil ==  0;
+   1.4.ceil ==  2;     1.5.ceil ==  2;    1.6.ceil ==  2;
+(-1.4).ceil == -1;  (-1.5).ceil == -1; (-1.6).ceil == -1;
+   inf.ceil == inf; (-inf).ceil == -inf;
+   nan.ceil.isNan;
+};
+
+syncline << "doc/specs/float.tex:174";
+[01234567:syncline] "doc/specs/float.tex:174"
+//#line 174 "doc/specs/float.tex"
+var x = 0;
+[00000000] 0
+var y = x.clone;
+[00000000] 0
+x === y;
+[00000000] false
+
+syncline << "doc/specs/float.tex:185";
+[01234567:syncline] "doc/specs/float.tex:185"
+//#line 185 "doc/specs/float.tex"
+assert {
+compl 0 == 4294967295;
+compl 4294967295 == 0;
+};
+
+syncline << "doc/specs/float.tex:192";
+[01234567:syncline] "doc/specs/float.tex:192"
+//#line 192 "doc/specs/float.tex"
+assert {
+0.cos == 1;
+Float.pi.cos == -1;
+};
+
+syncline << "doc/specs/float.tex:200";
+[01234567:syncline] "doc/specs/float.tex:200"
+//#line 200 "doc/specs/float.tex"
+assert {
+{
+  var res = [];
+  3.each(function (i) { res << 100 + i });
+  res
+}
+== [100, 101, 102];
+
+{
+  var res = [];
+  for(var x : 3) { res << x; sleep(20ms); res << (100 + x); };
+  res
+}
+== [0, 100, 1, 101, 2, 102];
+
+{
+  var res = [];
+  0.each (function (i) { res << 100 + i });
+  res
+}
+== [];
+};
+
+syncline << "doc/specs/float.tex:227";
+[01234567:syncline] "doc/specs/float.tex:227"
+//#line 227 "doc/specs/float.tex"
+assert {
+{
+  var res = [];
+  3.'each|'(function (i) { res << 100 + i });
+  res
+}
+== [100, 101, 102];
+
+{
+  var res = [];
+  for|(var x : 3) { res << x; sleep(20ms); res << (100 + x); };
+  res
+}
+== [0, 100, 1, 101, 2, 102];
+};
+
+syncline << "doc/specs/float.tex:246";
+[01234567:syncline] "doc/specs/float.tex:246"
+//#line 246 "doc/specs/float.tex"
+assert {
+{
+  var res = [];
+  for& (var x : 3) { res << x; sleep(30ms); res << (100 + x) };
+  res
+}
+== [0, 1, 2, 100, 101, 102];
+};
+
+syncline << "doc/specs/float.tex:257";
+[01234567:syncline] "doc/specs/float.tex:257"
+//#line 257 "doc/specs/float.tex"
+1.exp;
+[00000000] 2.71828
+
+syncline << "doc/specs/float.tex:265";
+[01234567:syncline] "doc/specs/float.tex:265"
+//#line 265 "doc/specs/float.tex"
+assert {
+     0.floor ==  0;
+   1.4.floor ==  1;     1.5.floor ==  1;    1.6.floor ==  1;
+(-1.4).floor == -2;  (-1.5).floor == -2; (-1.6).floor == -2;
+   inf.floor == inf; (-inf).floor == -inf;
+   nan.floor.isNan;
+};
+
+syncline << "doc/specs/float.tex:284";
+[01234567:syncline] "doc/specs/float.tex:284"
+//#line 284 "doc/specs/float.tex"
+assert {
+"%1.0d" % 0.1 == "0.1";
+"%1.0d" % 1.1 == {if (System.Platform.isWindows) "1.1" else "1"};
+
+"%1.0f" % 0.1 == "0";
+"%1.0f" % 1.1 == "1";
+};
+
+syncline << "doc/specs/float.tex:293";
+[01234567:syncline] "doc/specs/float.tex:293"
+//#line 293 "doc/specs/float.tex"
+assert {
+"%x" % 42 == "2a";
+"%x" % 0xFFFF == "ffff";
+
+"%x" % 0.5;
+[00000005:error] !!! %: expected integer, got 0.5
+};
+
+syncline << "doc/specs/float.tex:303";
+[01234567:syncline] "doc/specs/float.tex:303"
+//#line 303 "doc/specs/float.tex"
+{
+  var res = [];
+  for (var i: 10)
+    res << Float.fresh;
+  assert (res == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  res = [];
+  for (var i: 10)
+    res << Float.fresh;
+  assert (res == [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+};
+
+syncline << "doc/specs/float.tex:321";
+[01234567:syncline] "doc/specs/float.tex:321"
+//#line 321 "doc/specs/float.tex"
+assert {
+         0.hex == "0";
+      0xFF.hex == "ff";
+    0xFFFF.hex == "ffff";
+     65535.hex == "ffff";
+0xffffffff.hex == "ffffffff";
+
+   0.5.hex;
+[00000005:error] !!! format: expected integer, got 0.5
+};
+
+syncline << "doc/specs/float.tex:334";
+[01234567:syncline] "doc/specs/float.tex:334"
+//#line 334 "doc/specs/float.tex"
+Float.inf;
+[00000000] inf
+
+syncline << "doc/specs/float.tex:341";
+[01234567:syncline] "doc/specs/float.tex:341"
+//#line 341 "doc/specs/float.tex"
+assert {
+    !0.isInf; !1.isInf; !(-1).isInf;
+  !nan.isInf;
+   inf.isInf;  (-inf).isInf;
+};
+
+syncline << "doc/specs/float.tex:349";
+[01234567:syncline] "doc/specs/float.tex:349"
+//#line 349 "doc/specs/float.tex"
+assert {
+     !0.isNan; !1.isNan; !(-1).isNan;
+   !inf.isNan;  !(-inf).isNan;
+    nan.isNan;
+};
+
+syncline << "doc/specs/float.tex:360";
+[01234567:syncline] "doc/specs/float.tex:360"
+//#line 360 "doc/specs/float.tex"
+assert {
+0.log == -inf;
+1.log == 0;
+1.exp.log == 1;
+};
+
+syncline << "doc/specs/float.tex:368";
+[01234567:syncline] "doc/specs/float.tex:368"
+//#line 368 "doc/specs/float.tex"
+assert {
+1.max == 1;
+1.max(2, 3) == 3;
+3.max(1, 2) == 3;
+};
+
+syncline << "doc/specs/float.tex:376";
+[01234567:syncline] "doc/specs/float.tex:376"
+//#line 376 "doc/specs/float.tex"
+assert {
+1.min == 1;
+1.min(2, 3) == 1;
+3.min(1, 2) == 1;
+};
+
+syncline << "doc/specs/float.tex:386";
+[01234567:syncline] "doc/specs/float.tex:386"
+//#line 386 "doc/specs/float.tex"
+Float.nan;
+[00000000] nan
+(Float.nan + Float.nan) / (Float.nan - Float.nan);
+[00000000] nan
+
+syncline << "doc/specs/float.tex:396";
+[01234567:syncline] "doc/specs/float.tex:396"
+//#line 396 "doc/specs/float.tex"
+assert {
+{ var n = Float.nan; n === n};
+{ var n = Float.nan; n  != n};
+};
+
+syncline << "doc/specs/float.tex:403";
+[01234567:syncline] "doc/specs/float.tex:403"
+//#line 403 "doc/specs/float.tex"
+assert {
+Float.pi.cos ** 2 + Float.pi.sin ** 2 == 1;
+};
+
+syncline << "doc/specs/float.tex:409";
+[01234567:syncline] "doc/specs/float.tex:409"
+//#line 409 "doc/specs/float.tex"
+20.map(function (dummy) { 5.random });
+[00000000] [1, 2, 1, 3, 2, 3, 2, 2, 4, 4, 4, 1, 0, 0, 0, 3, 2, 4, 3, 2]
+
+syncline << "doc/specs/float.tex:416";
+[01234567:syncline] "doc/specs/float.tex:416"
+//#line 416 "doc/specs/float.tex"
+assert {
+     0.round ==  0;
+   1.4.round ==  1;     1.5.round ==  2;    1.6.round ==  2;
+(-1.4).round == -1;  (-1.5).round == -2; (-1.6).round == -2;
+   inf.round == inf; (-inf).round == -inf;
+   nan.round.isNan;
+};
+
+syncline << "doc/specs/float.tex:427";
+[01234567:syncline] "doc/specs/float.tex:427"
+//#line 427 "doc/specs/float.tex"
+assert {
+3.seq == [0, 1, 2];
+0.seq == [];
+};
+
+syncline << "doc/specs/float.tex:437";
+[01234567:syncline] "doc/specs/float.tex:437"
+//#line 437 "doc/specs/float.tex"
+assert {
+(-1164).sign == -1;
+0.sign       == 0;
+(1164).sign  == 1;
+};
+
+syncline << "doc/specs/float.tex:445";
+[01234567:syncline] "doc/specs/float.tex:445"
+//#line 445 "doc/specs/float.tex"
+assert {
+0.sin == 0;
+};
+
+syncline << "doc/specs/float.tex:451";
+[01234567:syncline] "doc/specs/float.tex:451"
+//#line 451 "doc/specs/float.tex"
+assert {
+32.sqr == 1024;
+32.sqr == 32 ** 2;
+};
+
+syncline << "doc/specs/float.tex:458";
+[01234567:syncline] "doc/specs/float.tex:458"
+//#line 458 "doc/specs/float.tex"
+assert {
+1024.sqrt == 32;
+1024.sqrt == 1024 ** 0.5;
+};
+
+syncline << "doc/specs/float.tex:482";
+[01234567:syncline] "doc/specs/float.tex:482"
+//#line 482 "doc/specs/float.tex"
+assert(0.tan == 0);
+(Float.pi/4).tan;
+[00000000] 1
+
+syncline << "doc/specs/float.tex:491";
+[01234567:syncline] "doc/specs/float.tex:491"
+//#line 491 "doc/specs/float.tex"
+3.times(function () { echo("ping")});
+[00000000] *** ping
+[00000000] *** ping
+[00000000] *** ping
+
+syncline << "doc/specs/float.tex:501";
+[01234567:syncline] "doc/specs/float.tex:501"
+//#line 501 "doc/specs/float.tex"
+assert {
+1.9.trunc == 1;
+(-1.9).trunc == -1;
+};
+
+syncline << "doc/specs/float.tex:508";
+[01234567:syncline] "doc/specs/float.tex:508"
+//#line 508 "doc/specs/float.tex"
+assert {
+(3 ^ 6) == 5;
+};
+
+syncline << "doc/specs/float.tex:514";
+[01234567:syncline] "doc/specs/float.tex:514"
+//#line 514 "doc/specs/float.tex"
+assert {
+4 >> 2 == 1;
+};
+
+syncline << "doc/specs/float.tex:522";
+[01234567:syncline] "doc/specs/float.tex:522"
+//#line 522 "doc/specs/float.tex"
+assert {
+  0 < 1;
+!(1 < 0);
+!(0 < 0);
+};
+
+syncline << "doc/specs/float.tex:530";
+[01234567:syncline] "doc/specs/float.tex:530"
+//#line 530 "doc/specs/float.tex"
+assert {
+4 << 2 == 16;
+};
+
+syncline << "doc/specs/float.tex:536";
+[01234567:syncline] "doc/specs/float.tex:536"
+//#line 536 "doc/specs/float.tex"
+assert {
+6 - 3 == 3;
+};
+
+syncline << "doc/specs/float.tex:542";
+[01234567:syncline] "doc/specs/float.tex:542"
+//#line 542 "doc/specs/float.tex"
+assert {
+1 + 1 == 2;
+};
+
+syncline << "doc/specs/float.tex:548";
+[01234567:syncline] "doc/specs/float.tex:548"
+//#line 548 "doc/specs/float.tex"
+assert {
+50 / 10 == 5;
+10 / 50 == 0.2;
+};
+
+syncline << "doc/specs/float.tex:555";
+[01234567:syncline] "doc/specs/float.tex:555"
+//#line 555 "doc/specs/float.tex"
+assert {
+50 % 11 == 6;
+};
+
+syncline << "doc/specs/float.tex:561";
+[01234567:syncline] "doc/specs/float.tex:561"
+//#line 561 "doc/specs/float.tex"
+assert {
+2 * 3 == 6;
+};
+
+syncline << "doc/specs/float.tex:567";
+[01234567:syncline] "doc/specs/float.tex:567"
+//#line 567 "doc/specs/float.tex"
+assert {
+ 2 ** 10 == 1024;
+ 2 ** 31 == 2147483648;
+-2 ** 31 == -2147483648; // This is -(2**31).
+ 2 ** 32 == 4294967296;
+-2 ** 32 == -4294967296; // This is -(2**32).
+};
+
+syncline << "doc/specs/float.tex:577";
+[01234567:syncline] "doc/specs/float.tex:577"
+//#line 577 "doc/specs/float.tex"
+assert {
+  1 == 1;
+!(1 == 2);
+};

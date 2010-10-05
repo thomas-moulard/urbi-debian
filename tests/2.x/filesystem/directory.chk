@@ -1,0 +1,23 @@
+//! mkdir -p root/dir/sub
+//! touch root/{1,2,3}
+//! mkdir root/baddir
+//! chmod 0 root/baddir
+//$ chmod 755 root/baddir
+
+Directory.new("pouf");
+[00000001:error] !!! input.u:7.1-21: new: does not exist: pouf
+
+
+Directory.new("root");
+[00000002] Directory("root")
+Directory.new("root").content.sort;
+[00000003] ["1", "2", "3", "baddir", "dir"]
+
+try {
+  Directory.new("root/bad").content;
+  if (!Platform.isWindows)
+    echo("Failure to throw");   // Yes, Windows allows it...
+}
+catch {
+  // Nothing, this is ok
+};

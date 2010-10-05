@@ -1,0 +1,21 @@
+// Check that we do not signal an error or crash when
+// removing a non-existing slot.
+var o1 = Object.new |
+var o2 = o1.new |
+var o1.f1 = 1 |
+var o2.f2 = 1 |
+
+o2.hasSlot("f2");
+[00000001] true
+o2.removeSlot("f2") |
+o2.hasSlot("f2");
+[00000002] false
+o2.removeSlot("f2") |
+o2.removeSlot("f2") |  // Trying to reproduce a previous crash
+o2.hasSlot("f2");
+[00000003] false
+o2.hasSlot("f1");
+[00000004] true
+o2.removeSlot("f1") |
+o2.hasSlot("f1");
+[00000005] true

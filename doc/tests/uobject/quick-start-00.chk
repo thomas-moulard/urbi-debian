@@ -1,0 +1,72 @@
+syncline << "doc/uobject/quick-start.tex:253";
+[01234567:syncline] "doc/uobject/quick-start.tex:253"
+//#line 253 "doc/uobject/quick-start.tex"
+//#plug urbi/factory
+class TwoMachineFactory
+{
+  // A shorthand common to all the Two Machine factories.
+  var UFactory = uobjects.UFactory;
+
+  // Default machines.
+  var this.fastMachine = UFactory.new(10ms);
+  var this.slowMachine = UFactory.new(100ms);
+
+  // The urbiscript constructor.
+  // Build two machines, a fast one, and a slow one.
+  function init(fast = 10ms, slow = 100ms)
+  {
+    // Make sure fast <= slow.
+    if (slow < fast)
+      [fast, slow] = [slow, fast];
+    // Two machines for each instance of factory.
+    fastMachine = UFactory.new(fast);
+    slowMachine = UFactory.new(slow);
+  };
+
+  // Wrappers to make invocation of the machine simpler.
+  function fast(input) { fastMachine.assemble(input) };
+  function slow(input) { slowMachine.assemble(input) };
+
+  // Use the slow machine for large jobs.
+  function assemble(input)
+  {
+    var res;
+    if (5 < input.size)
+      { res = slow(input); echo("Used the slow machine") }
+    else
+      { res = fast(input); echo("Used the fast machine") } |
+    res
+  };
+};
+[00000001] TwoMachineFactory
+
+syncline << "doc/uobject/quick-start.tex:296";
+[01234567:syncline] "doc/uobject/quick-start.tex:296"
+//#line 296 "doc/uobject/quick-start.tex"
+var f = TwoMachineFactory.new|;
+f.assemble([1, 2, 3, 4, 5, 6]);
+[00000002] *** Used the slow machine
+[00000003] "123456"
+f.assemble([1]);
+[00000004] *** Used the fast machine
+[00000005] "1"
+
+syncline << "doc/uobject/quick-start.tex:322";
+[01234567:syncline] "doc/uobject/quick-start.tex:322"
+//#line 322 "doc/uobject/quick-start.tex"
+f.assemble([1, 2, 3, 4, 5, 6]),
+f.assemble([1]),
+[00000004] *** Used the fast machine
+sleep(100ms);
+[00000002] *** Used the slow machine
+
+syncline << "doc/uobject/quick-start.tex:343";
+[01234567:syncline] "doc/uobject/quick-start.tex:343"
+//#line 343 "doc/uobject/quick-start.tex"
+assert {
+//for, (var list = [1, 2, 3, 4, 5, 6, 7];
+//      !list.empty;
+//      list.removeBack)
+//  cout << list.asString + " => " + f.assemble(list);
+//sleep(1s);
+};

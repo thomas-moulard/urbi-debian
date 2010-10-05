@@ -1,0 +1,5 @@
+// Check that "new" doesn't evaluate its target
+
+function foo () { echo ("foo") } | {};
+getSlot ("foo").new.asString;
+[00000001] "function () {\n  echo(\"foo\")\n}"

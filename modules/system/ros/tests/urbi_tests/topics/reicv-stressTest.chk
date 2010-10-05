@@ -1,0 +1,48 @@
+//#roscore
+//#no-fast
+//#plug urbi/ros
+
+if (Platform.hostOs[0,6] == "darwin")
+  testSkip("Too stressy for mac os x");
+
+var ready = Ros.Topic.new("/ready") |
+ready.advertise("std_msgs/Bool");
+
+var t = Ros.Topic.new("/utests/stressTest")|;
+var p = Process.new("rosrun", ["utopics", "stressTest"])|;
+var count = 0|;
+var time0;
+var time350;
+
+reicv: at(t.onMessage?(var m)) {
+  if (count++ == 0)
+  {
+    time0 = time|;
+    lobby.send(m["width"].asString + " " + m["height"].asString);
+    lobby.send(m["encoding"].asString);
+    lobby.send(m["data"].type);
+    lobby.send(m["data"].data.size.asString);
+  }|;
+  if (count == 350)
+    time350 = time|;
+};
+
+p.run;
+Ros.waitForTopic("/utests/stressTest");
+t.subscribe;
+
+sleep(500ms);
+ready << ["data" => 1] |
+sleep(10s);
+
+[00000001] 640 480
+[00000002] rgb
+[00000003] Binary
+[00000004] 921600
+
+count;
+[00000005] 350
+
+Math.round((time350 - time0) * 2);
+[00000006] 14
+

@@ -1,0 +1,12 @@
+// Test data exchange between C++ remote and plugin code.
+//#plug urbi/all
+//#remote urbi/all
+
+all.writeB("all.a", "ca;nard")|;
+// Easier to use the backend used by 'external var'.
+all.getSlot("a").val.asPrintable;
+[00000001] "BIN 7 \nca;nard"
+
+all.writeS("all.a", "ca;nard")|;
+all.getSlot("a").val.asPrintable;
+[00000002] "\"ca;nard\""

@@ -1,0 +1,9 @@
+// Hahem, this test is TFAIL, but it actually works on windows. Gotta
+// release, to check later.
+skip_if_windows ();
+
+// Check that an exception is propagated outside the trajectory generator.
+// And also check we are not stuck after the throw (happened once).
+y = 20 sin:10s ampli:5;
+[00000001:error] !!! input.u:3.1: lookup failed: y
+

@@ -1,0 +1,14 @@
+syncline << "doc/specs/directory.tex:25";
+[01234567:syncline] "doc/specs/directory.tex:25"
+//#line 25 "doc/specs/directory.tex"
+Directory.new(".");
+[00000001] Directory(".")
+Directory.new(Path.new("."));
+[00000002] Directory(".")
+
+syncline << "doc/specs/directory.tex:40";
+[01234567:syncline] "doc/specs/directory.tex:40"
+//#line 40 "doc/specs/directory.tex"
+assert {
+Directory.new(".").asString == ".";
+};

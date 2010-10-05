@@ -1,0 +1,109 @@
+syncline << "doc/specs/tag.tex:221";
+[01234567:syncline] "doc/specs/tag.tex:221"
+//#line 221 "doc/specs/tag.tex"
+var t = Tag.new("t");
+[00000000] Tag<t>
+
+at (t.enter?)
+  echo("enter");
+at (t.leave?)
+  echo("leave");
+
+t: {echo("inside"); 42};
+[00000000] *** enter
+[00000000] *** inside
+[00000000] *** leave
+[00000000] 42
+
+syncline << "doc/specs/tag.tex:247";
+[01234567:syncline] "doc/specs/tag.tex:247"
+//#line 247 "doc/specs/tag.tex"
+{
+  function cook()
+  {
+    turn_gas_on();
+
+    // Cooking code ...
+
+    turn_gas_off();
+  }|
+
+  enter_the_kitchen();
+  cook();
+  leave_the_kitchen();
+};
+
+syncline << "doc/specs/tag.tex:268";
+[01234567:syncline] "doc/specs/tag.tex:268"
+//#line 268 "doc/specs/tag.tex"
+{
+  function cook()
+  {
+    turn_gas_on();
+
+    if (meal_ready)
+    {
+      echo("The meal is already there, nothing to do!");
+      // Oops ...
+      return
+    };
+
+    for (var ingredient in recipe)
+      if (ingredient not in kitchen)
+        // Oops ...
+        throw Exception("missing ingredient: %s" % ingredient)
+      else
+        put_ingredient();
+
+    // ...
+
+    turn_gas_off();
+  }|
+
+  enter_the_kitchen();
+  cook();
+  leave_the_kitchen();
+};
+
+syncline << "doc/specs/tag.tex:305";
+[01234567:syncline] "doc/specs/tag.tex:305"
+//#line 305 "doc/specs/tag.tex"
+{
+  function cook()
+  {
+    var with_gas = Tag.new("with_gas");
+
+    at (with_gas.enter?)
+      turn_gas_on();
+    at (with_gas.leave?)
+      turn_gas_off();
+
+    with_gas: {
+      // Cooking code. Even if exception are thrown here or return is called,
+      // the gas will be turned off.
+    }
+  }|
+
+  enter_the_kitchen();
+  cook();
+  leave_the_kitchen();
+};
+
+syncline << "doc/specs/tag.tex:337";
+[01234567:syncline] "doc/specs/tag.tex:337"
+//#line 337 "doc/specs/tag.tex"
+var mytag = Tag.new("mytag");
+[00000000] Tag<mytag>
+
+mytag.begin: echo(1);
+[00000000] *** mytag: begin
+[00000000] *** 1
+
+mytag.end: echo(2);
+[00000000] *** 2
+[00000000] *** mytag: end
+
+mytag.begin.end: echo(3);
+[00000000] *** mytag: begin
+[00000000] *** 3
+[00000000] *** mytag: end

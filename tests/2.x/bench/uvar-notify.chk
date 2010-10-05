@@ -1,0 +1,20 @@
+var Object.x = 0|
+class Object.v{}|
+UVar.new(v, "val")|
+UVar.new(v, "val2")|
+UVar.new(v, "val3")|
+if (locateSlot("uobjects_handle"))
+{
+v.getSlot("val").notifyChange(uobjects_handle, function() {v.val2 = v.val})|
+v.getSlot("val2").notifyChange(uobjects_handle, function() {x = v.val2 + v.val3})|
+v.getSlot("val3").notifyAccess(uobjects_handle, function() {v.val3 = v.val})|;
+}
+else
+{
+v.getSlot("val").notifyChange(function() {v.val2 = v.val})|
+v.getSlot("val2").notifyChange(function() {x = v.val2 + v.val3})|
+v.getSlot("val3").notifyAccess(function() {v.val3 = v.val})|;
+};
+for|(500) v.val = x++;
+x;
+[00000001] 500

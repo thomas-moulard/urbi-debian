@@ -1,0 +1,143 @@
+syncline << "doc/tables/release-notes.tex:72";
+[01234567:syncline] "doc/tables/release-notes.tex:72"
+//#line 72 "doc/tables/release-notes.tex"
+// Can we run "riskyFeature"?
+try { riskyFeature } catch { false } else { true };
+[00004220] false
+
+function riskyFeature() { throw "die" }|;
+try { riskyFeature } catch { false } else { true };
+[00004433] false
+
+riskyFeature = function () { 42 }|;
+try { riskyFeature } catch { false } else { true };
+[00004447] true
+
+syncline << "doc/tables/release-notes.tex:89";
+[01234567:syncline] "doc/tables/release-notes.tex:89"
+//#line 89 "doc/tables/release-notes.tex"
+try { echo(1) } catch { echo(2) } else { echo(3) } finally { echo(4) };
+[00002670] *** 1
+[00002670] *** 3
+[00002670] *** 4
+
+try { throw 1 } catch { echo(2) } else { echo(3) } finally { echo(4) };
+[00002671] *** 2
+[00002671] *** 4
+
+syncline << "doc/tables/release-notes.tex:102";
+[01234567:syncline] "doc/tables/release-notes.tex:102"
+//#line 102 "doc/tables/release-notes.tex"
+eval("new Object");
+[00001388:warning] !!! 1.1-10: `new Obj(x)' is deprecated, use `Obj.new(x)'
+[00001388:warning] !!!    called from: eval
+[00001388] Object_0x1001b2320
+
+syncline << "doc/tables/release-notes.tex:130";
+[01234567:syncline] "doc/tables/release-notes.tex:130"
+//#line 130 "doc/tables/release-notes.tex"
+at (isdef (myVar))
+  echo("var myVar = " + myVar),
+
+myVar;
+[00000001:error] !!! lookup failed: myVar
+
+var myVar = 42|;
+[00000003] *** var myVar = 42
+
+syncline << "doc/tables/release-notes.tex:279";
+[01234567:syncline] "doc/tables/release-notes.tex:279"
+//#line 279 "doc/tables/release-notes.tex"
+var one = 1|;
+var two = 2|;
+assert (one == two);
+[00000002:error] !!! failed assertion: one == two (1 != 2)
+
+syncline << "doc/tables/release-notes.tex:921";
+[01234567:syncline] "doc/tables/release-notes.tex:921"
+//#line 921 "doc/tables/release-notes.tex"
+"2.1".asFloat;
+[00000002] 2.1
+"2.0a".asFloat;
+[00000003:error] !!! asFloat: unable to convert to float: "2.0a"
+
+syncline << "doc/tables/release-notes.tex:1036";
+[01234567:syncline] "doc/tables/release-notes.tex:1036"
+//#line 1036 "doc/tables/release-notes.tex"
+class A {
+  function '()' (x) { echo("A called with " + x) };
+}|;
+A;
+[00000001] A
+A();
+[00000002] A
+A(42);
+[00000003] *** A called with 42
+
+syncline << "doc/tables/release-notes.tex:1122";
+[01234567:syncline] "doc/tables/release-notes.tex:1122"
+//#line 1122 "doc/tables/release-notes.tex"
+["a", "b", "c"].insert(1, "foo");
+[00000001] ["a", "foo", "b", "c"]
+
+syncline << "doc/tables/release-notes.tex:1133";
+[01234567:syncline] "doc/tables/release-notes.tex:1133"
+//#line 1133 "doc/tables/release-notes.tex"
+["foo", "bar", "Baz"].sort;
+[00000001] ["Baz", "bar", "foo"]
+["foo", "bar", "Baz"].sort(function(x, y) {x.toLower < y.toLower});
+[00000002] ["bar", "Baz", "foo"]
+
+syncline << "doc/tables/release-notes.tex:1150";
+[01234567:syncline] "doc/tables/release-notes.tex:1150"
+//#line 1150 "doc/tables/release-notes.tex"
+var ne = System.getenv("nonexistent");
+if (!ne.isNil) do_something(ne);
+
+syncline << "doc/tables/release-notes.tex:1246";
+[01234567:syncline] "doc/tables/release-notes.tex:1246"
+//#line 1246 "doc/tables/release-notes.tex"
+var object = 1|;
+var from = 1|;
+
+syncline << "doc/tables/release-notes.tex:1255";
+[01234567:syncline] "doc/tables/release-notes.tex:1255"
+//#line 1255 "doc/tables/release-notes.tex"
+0x2a;
+[00000001] 42
+
+syncline << "doc/tables/release-notes.tex:1282";
+[01234567:syncline] "doc/tables/release-notes.tex:1282"
+//#line 1282 "doc/tables/release-notes.tex"
+for (var c: "foo") echo (c);
+[00000001] *** f
+[00000002] *** o
+[00000003] *** o
+
+syncline << "doc/tables/release-notes.tex:1308";
+[01234567:syncline] "doc/tables/release-notes.tex:1308"
+//#line 1308 "doc/tables/release-notes.tex"
+["the", "brown", "Fox"].min;
+[00000001] "Fox"
+["the", "brown", "Fox"].min(function (l, r) { l.toLower < r.toLower });
+[00000002] "brown"
+
+syncline << "doc/tables/release-notes.tex:1319";
+[01234567:syncline] "doc/tables/release-notes.tex:1319"
+//#line 1319 "doc/tables/release-notes.tex"
+min(3, 2, 17);
+[00000001] 2
+
+syncline << "doc/tables/release-notes.tex:1329";
+[01234567:syncline] "doc/tables/release-notes.tex:1329"
+//#line 1329 "doc/tables/release-notes.tex"
+["a", "b", "c"][-1];
+[00000001] "c"
+
+syncline << "doc/tables/release-notes.tex:1339";
+[01234567:syncline] "doc/tables/release-notes.tex:1339"
+//#line 1339 "doc/tables/release-notes.tex"
+Tag.new;
+[00000001] Tag<tag_1>
+Tag.new("mytag");
+[00000002] Tag<mytag>

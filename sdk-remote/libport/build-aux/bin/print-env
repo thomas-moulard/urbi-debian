@@ -1,0 +1,173 @@
+#! /usr/bin/perl -w
+
+=head1 NAME
+
+print-env - print the environment in a human and sh readable maner.
+
+=head1 SYNOPSIS
+
+  print-env [OPTIONS...]
+
+=head1 OPTIONS
+
+General options:
+
+=over 4
+
+=item B<-i>, B<--ignore>=I<pattern>
+
+Do not report variables that match the Perl regular expression
+^I<pattern>$.
+
+=item B<-I>, B<--ignore-standard>
+
+Ignore some standard, uninteresting, variables.
+
+=item B<-h>, B<--help>
+
+Display this message and exit.
+
+=item B<-q>, B<--quiet>
+
+Be less verbose.  Accumulates.
+
+=item B<-v>, B<--verbose>
+
+Be more verbose.  Accumulates.
+
+=back
+
+=cut
+
+BEGIN
+{
+  use File::Basename;
+  unshift @INC, dirname($0) . '/../perl';
+}
+
+use BuildAux::FileUtils;
+use BuildAux::Verbose;
+use strict;
+use English;
+
+# Variables to ignore.
+my @ignore = ();
+
+# Variables we don't care about.
+my @ignore_standard =
+  qw{
+    Apple_PubSub.*
+    AM_COLOR_TESTS
+    as_.*
+    BASH.*
+    CCACHE_.*
+    CVS_.*
+    DBUS_.*
+    DISPLAY
+    EDITOR
+    EMAIL
+    FULLNAME
+    HOME
+    LANG
+    LANGUAGE
+    LC_.*
+    LOGNAME
+    MANPATH
+    MAKEFLAGS
+    MAKELEVEL
+    MAKEOVERRIDES
+    MFLAGS
+    OLDPWD
+    PAGER
+    PS[1234]
+    PYTHONPATH
+    SECURITYSESSIONID
+    SHELL
+    SHLVL
+    SSH_AUTH_SOCK
+    TERM
+    TERM_.*
+    TEXI2DVI_.*
+    TMPDIR
+    USER
+    VISUAL
+    _
+    __CF_USER_.*
+  };
+
+=head1 FUNCTIONS
+
+=over 4
+
+=item C<getopt()>
+
+Process the command line arguments.
+
+=cut
+
+sub getopt ()
+{
+  use BuildAux::Getopt qw($message);
+  $message = "Print (some) environment variables";
+  BuildAux::Getopt::getopt
+    (
+     "i|ignore=s"         => \@ignore,
+     "I|ignore-standard"  => sub { push @ignore, @ignore_standard },
+    );
+}
+
+
+######################################################################
+
+=item C<shellescape($str)>
+
+Return C<$str> properly escaped for a regular Bourne shell.  Avoid
+useless quotes to produce a readable result.  Keep sync with the copy
+in instrument.
+
+This is insufficient.  We actually need to have the result "eval"'ed.
+
+=cut
+
+sub shellescape($)
+{
+  my ($str) = @_;
+  if ($str =~ m([^-=+_/.[:alnum:]]))
+    {
+      $str =~ s,[\\'],'\\$&',g;
+      $str = "'$str'";
+    }
+  return $str;
+}
+
+## ------ ##
+## Main.  ##
+## ------ ##
+
+getopt;
+
+my $ignore = '^(' . join ('|', @ignore) . ')$';
+verbose 2, "ignore pattern: $ignore";
+for my $v (sort keys %ENV)
+{
+  printf "%s=%s\n", $v, shellescape $ENV{$v}
+    unless $v =~ m/$ignore/o;
+}
+
+
+### Setup "Gostai" style for perl-mode and cperl-mode.
+## Local Variables:
+## perl-indent-level: 2
+## perl-continued-statement-offset: 2
+## perl-continued-brace-offset: -2
+## perl-brace-offset: 0
+## perl-brace-imaginary-offset: 0
+## perl-label-offset: -2
+## cperl-indent-level: 2
+## cperl-brace-offset: 0
+## cperl-continued-brace-offset: -2
+## cperl-label-offset: -2
+## cperl-extra-newline-before-brace: t
+## cperl-merge-trailing-else: nil
+## cperl-continued-statement-offset: 2
+## End:

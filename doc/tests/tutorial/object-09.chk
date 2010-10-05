@@ -1,0 +1,5 @@
+syncline << "doc/tutorial/object.tex:360";
+[01234567:syncline] "doc/tutorial/object.tex:360"
+//#line 360 "doc/tutorial/object.tex"
+var p = Pair.new("foo", false);
+[00000000] ("foo", false)

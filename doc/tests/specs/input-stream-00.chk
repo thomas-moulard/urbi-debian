@@ -1,0 +1,73 @@
+syncline << "doc/specs/input-stream.tex:33";
+[01234567:syncline] "doc/specs/input-stream.tex:33"
+//#line 33 "doc/specs/input-stream.tex"
+File.save("file.txt", "1\n2\n");
+var is = InputStream.new(File.new("file.txt"));
+[00000001] InputStream_0x827000
+
+syncline << "doc/specs/input-stream.tex:42";
+[01234567:syncline] "doc/specs/input-stream.tex:42"
+//#line 42 "doc/specs/input-stream.tex"
+is.close;
+
+syncline << "doc/specs/input-stream.tex:51";
+[01234567:syncline] "doc/specs/input-stream.tex:51"
+//#line 51 "doc/specs/input-stream.tex"
+{
+  var i = InputStream.new(File.create("file.txt"));
+  assert(i.close.isVoid);
+  i.close;
+};
+[00000001:error] !!! close: stream is closed
+
+syncline << "doc/specs/input-stream.tex:63";
+[01234567:syncline] "doc/specs/input-stream.tex:63"
+//#line 63 "doc/specs/input-stream.tex"
+{
+  File.save("file.txt", "1\n2\n");
+  var i = InputStream.new(File.new("file.txt"));
+  var x;
+  while (!(x = i.get.acceptVoid).isVoid)
+    cout << x;
+  i.close;
+  i.get;
+};
+[00000001:output] 49
+[00000002:output] 10
+[00000003:output] 50
+[00000004:output] 10
+[00000005:error] !!! get: stream is closed
+
+syncline << "doc/specs/input-stream.tex:83";
+[01234567:syncline] "doc/specs/input-stream.tex:83"
+//#line 83 "doc/specs/input-stream.tex"
+{
+  File.save("file.txt", "1\n2\n");
+  var i = InputStream.new(File.new("file.txt"));
+  var x;
+  while (!(x = i.getChar.acceptVoid).isVoid)
+    cout << x;
+  i.close;
+  i.getChar;
+};
+[00000001:output] "1"
+[00000002:output] "\n"
+[00000003:output] "2"
+[00000004:output] "\n"
+[00000005:error] !!! getChar: stream is closed
+
+syncline << "doc/specs/input-stream.tex:104";
+[01234567:syncline] "doc/specs/input-stream.tex:104"
+//#line 104 "doc/specs/input-stream.tex"
+{
+  File.save("file.txt", "1\n2\n");
+  var i = InputStream.new(File.new("file.txt"));
+  var x;
+  while (!(x = i.getLine.acceptVoid).isVoid)
+    cout << x;
+  i.close;
+  i.getLine;
+};
+[00000001:output] "1"
+[00000002:output] "2"
+[00000005:error] !!! getLine: stream is closed

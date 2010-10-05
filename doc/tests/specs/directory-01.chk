@@ -1,0 +1,41 @@
+syncline << "doc/specs/directory.tex:55";
+[01234567:syncline] "doc/specs/directory.tex:55"
+//#line 55 "doc/specs/directory.tex"
+if (Path.new("./dummy.txt").exists)
+  File.new("./dummy.txt").remove;
+
+  {
+    var d = Directory.new(".");
+    waituntil(d.fileCreated?(var name));
+    assert
+    {
+      name == "dummy.txt";
+      Path.new(d.asString + "/" + name).exists;
+    };
+  }
+&
+  {
+    sleep(100ms);
+    File.create("./dummy.txt");
+  }|;
+
+syncline << "doc/specs/directory.tex:79";
+[01234567:syncline] "doc/specs/directory.tex:79"
+//#line 79 "doc/specs/directory.tex"
+if (!Path.new("./dummy.txt").exists)
+  File.create("./dummy.txt")|;
+
+  {
+    var d = Directory.new(".");
+    waituntil(d.fileDeleted?(var name));
+    assert
+    {
+      name == "dummy.txt";
+      !Path.new(d.asString + "/" + name).exists;
+    };
+  }
+&
+  {
+    sleep(100ms);
+    File.new("./dummy.txt").remove;
+  }|;

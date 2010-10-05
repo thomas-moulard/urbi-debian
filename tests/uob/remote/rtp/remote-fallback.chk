@@ -1,0 +1,32 @@
+//#plug urbi/all
+//#plug urbi/rtp
+//#remote urbi/all urbi/rtp
+fakeRTPError;
+
+// To check that data is sent by RTP, check that there is no trafic
+// on our TCP connection.
+remall.markRTP(1,1)|;
+// Disable value update feedback.
+remall.unnotify(1)|;
+var rtpname = remall.lobby._rtp_object_name + "__shared_"|;
+// Simulate a connection problem.
+  waituntil(uobjects.hasLocalSlot(rtpname))|
+  waituntil(uobjects.getSlot(rtpname).hasLocalSlot("close"))|
+  uobjects.getSlot(rtpname).close,
+remall.periodicWriteType = 2|
+remall.periodicWriteTarget = 1|
+remall.periodicWriteRate = 50ms|;
+
+sleep(1s); // time to setup, to fail, and to fallback
+// Check that we still receive update, but through our TCP link.
+// ...that means isSilent will fail.
+(remall.lobby.isSilent(400ms, 0, 60)!= true).print,
+var t = remall.b|;
+sleep(200ms);
+remall.b - t > 0.1;
+sleep(400ms);
+// isSilent output comes first
+[00000001] true
+// Then remall.b comparison
+[00000002] true
+

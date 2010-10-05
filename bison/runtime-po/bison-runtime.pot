@@ -1,0 +1,61 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: bison 2.3b.564-5697\n"
+"Report-Msgid-Bugs-To: bug-bison@gnu.org\n"
+"POT-Creation-Date: 2010-09-28 10:31+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: data/glr.c:865 data/yacc.c:637
+msgid "syntax error: cannot back up"
+msgstr ""
+
+#: data/glr.c:1742
+msgid "syntax is ambiguous"
+msgstr ""
+
+#: data/glr.c:2087 data/lalr1.cc:1022 data/yacc.c:976
+#, c-format
+msgid "syntax error, unexpected %s"
+msgstr ""
+
+#: data/glr.c:2088 data/lalr1.cc:1023 data/yacc.c:977
+#, c-format
+msgid "syntax error, unexpected %s, expecting %s"
+msgstr ""
+
+#: data/glr.c:2089 data/lalr1.cc:1024 data/yacc.c:978
+#, c-format
+msgid "syntax error, unexpected %s, expecting %s or %s"
+msgstr ""
+
+#: data/glr.c:2090 data/lalr1.cc:1025 data/yacc.c:979
+#, c-format
+msgid "syntax error, unexpected %s, expecting %s or %s or %s"
+msgstr ""
+
+#: data/glr.c:2091 data/lalr1.cc:1026 data/yacc.c:980
+#, c-format
+msgid "syntax error, unexpected %s, expecting %s or %s or %s or %s"
+msgstr ""
+
+#: data/glr.c:2124 data/glr.c:2130 data/glr.c:2398 data/lalr1.cc:1042
+#: data/yacc.c:1478 data/yacc.c:1497
+msgid "syntax error"
+msgstr ""
+
+#: data/glr.c:2458 data/yacc.c:1069 data/yacc.c:1071 data/yacc.c:1256
+#: data/yacc.c:1618
+msgid "memory exhausted"
+msgstr ""

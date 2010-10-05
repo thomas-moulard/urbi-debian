@@ -1,0 +1,11 @@
+var p1 = Global.Profiling.new(2+2, 23) | {};
+p1.niters;
+[00000001] 23
+p1.ncycles;
+[00000002] 23
+
+var p2 = Global.Profiling.new({ var x = 2+2; }, 42) | {};
+p2.niters;
+[00000003] 42
+p2.ncycles;
+[00000004] 42

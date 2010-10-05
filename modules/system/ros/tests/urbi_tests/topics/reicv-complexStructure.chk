@@ -1,0 +1,41 @@
+//#roscore
+//#no-fast
+//#plug urbi/ros
+
+var ready = Ros.Topic.new("/ready") |
+ready.advertise("std_msgs/Bool");
+
+var t = Ros.Topic.new("/utests/complexStructure")|;
+var p = Process.new("rosrun", ["utopics", "complexStructure"])|;
+
+reicv: at(t.onMessage?(var m))
+{
+  lobby.send(m["coords"].size.asString);
+  for (var n: m["coords"])
+    lobby.send(n.asString)|;
+  lobby.send(m["name"].asString);
+  lobby.send(m["robots"].asString);
+  lobby.send(m["messages"].asString);
+  lobby.send(m["port"].asString);
+  lobby.send(m["nodes"].size.asString);
+  for (var n: m["nodes"])
+    lobby.send(n.asString)|;
+};
+p.run;
+Ros.waitForTopic("/utests/complexStructure");
+t.subscribe;
+
+sleep(500ms);
+ready << ["data" => 1] |
+sleep(4s);
+
+[00000001] 2
+[00000002] ["a" => 4, "b" => -8]
+[00000003] ["a" => -15, "b" => 16]
+[00000004] root
+[00000005] ["nao", "spykee", "LegoStorm NXT"]
+[00000006] ["coin!", "meuh"]
+[00000007] 31337
+[00000008] 1
+[00000009] ["name" => "node1", "port" => 4222, "position" => [-1.72, 13.76, 2.54], "stuff" => ["This is stuff!"]]
+

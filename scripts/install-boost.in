@@ -1,0 +1,88 @@
+#!/bin/sh
+
+fatal ()
+{
+  echo >&2 "$0: $*"
+  exit 1
+}
+
+set -e -x
+
+builddir="@builddir@"
+host="@host@"
+prefix="@prefix@"
+build="@build@"
+# Do not sort by alphabetical order here.  exec_prefix typically uses
+# $prefix, and libdir uses $exec_prefix.  Hence the double quotes too.
+# $bindir is needed because on Windows we define libdir as ${bindir}.
+exec_prefix="@exec_prefix@"
+bindir="@bindir@"
+libdir="@libdir@"
+includedir="@includedir@"
+
+boost_header_dir='@BOOST_HEADER_DIR@'
+boost_library_glob='@BOOST_LIBRARY_GLOB@'
+
+test -n "$DESTDIR" ||
+  fatal "DESTDIR is not defined"
+
+## --------- ##
+## Headers.  ##
+## --------- ##
+case $build:$host in
+  (*cygwin:*) boost_header_dir=$(cygpath  -u "$boost_header_dir");;
+  (*:*mingw32) boost_header_dir=$(winepath -u "$boost_header_dir");;
+esac
+
+# Ensure we got it right.
+boost_header_dir="$boost_header_dir/boost"
+test -f  "$boost_header_dir"/version.hpp ||
+  fatal "failed to find boost include directory, got '$boost_header_dir'"
+
+# Symlinks.
+boost_header_dir=$(perl -mCwd -e 'print Cwd::realpath($ARGV[0]), "\n";' \
+                      -- "$boost_header_dir")
+
+cp -pRP "$boost_header_dir" "$DESTDIR$includedir"
+# Fix rights: the owner is allowed to change the headers.
+chmod -R u+w "$DESTDIR$includedir"
+
+## ----------- ##
+## Libraries.  ##
+## ----------- ##
+
+# symstack_cp SOURCE DIR
+# ----------------------
+# Copy SOURCE to DIR.  If it is a symlink, also copy what it points to
+# in DIR (and recursively).
+symstack_cp ()
+{
+  local source=$1
+  local base=$(basename "$source")
+  local dir=$2
+  local dest=$dir/$base
+
+  # The owner is allowed to change the libraries, and they should be
+  # executable.  Do not use "install", as it cannot preserve symlinks.
+  # And when installing shared libraries, there are often many.
+  cp -P "$source" "$dest"
+  if test -L "$source"; then
+    local linked=$(readlink $source)
+    local srcdir=$(dirname "$source")
+    symstack_cp "$srcdir/$linked" "$dir"
+  else
+    chmod 0755 "$dest"
+  fi
+}
+
+for lib in $boost_library_glob
+do
+  case $lib in
+    (*python*)
+      # Don't install Boost.Python, it is too demanding.
+      ;;
+    (*)
+      symstack_cp "$lib" "$DESTDIR$libdir"
+      ;;
+  esac
+done

@@ -1,0 +1,131 @@
+syncline << "doc/specs/ros.tex:79";
+[01234567:syncline] "doc/specs/ros.tex:79"
+//#line 79 "doc/specs/ros.tex"
+assert {
+"/rosout" in Ros.nodes;
+Ros.name in Ros.nodes;
+};
+
+syncline << "doc/specs/ros.tex:92";
+[01234567:syncline] "doc/specs/ros.tex:92"
+//#line 92 "doc/specs/ros.tex"
+//#roscore
+var services = Ros.services|
+var name = Ros.name|;
+assert
+{
+         "/rosout/get_loggers" in services;
+    "/rosout/set_logger_level" in services;
+       (name + "/get_loggers") in services;
+  (name + "/set_logger_level") in services;
+};
+
+syncline << "doc/specs/ros.tex:113";
+[01234567:syncline] "doc/specs/ros.tex:113"
+//#line 113 "doc/specs/ros.tex"
+var topics = Ros.topics|;
+topics.keys;
+[03316144] ["/rosout_agg"]
+topics["/rosout_agg"];
+[03325634] ["publishers" => ["/rosout"], "subscribers" => [], "type" => "roslib/Log"]
+
+syncline << "doc/specs/ros.tex:155";
+[01234567:syncline] "doc/specs/ros.tex:155"
+//#line 155 "doc/specs/ros.tex"
+Ros.Topic.new("/test").name;
+[00011644] "/test"
+
+syncline << "doc/specs/ros.tex:170";
+[01234567:syncline] "doc/specs/ros.tex:170"
+//#line 170 "doc/specs/ros.tex"
+var logTopic = Ros.Topic.new("/rosout_agg")|
+logTopic.subscribe|;
+logTopic.structure.keys;
+[00133519] ["file", "function", "header", "level", "line", "msg", "name", "topics"]
+
+syncline << "doc/specs/ros.tex:215";
+[01234567:syncline] "doc/specs/ros.tex:215"
+//#line 215 "doc/specs/ros.tex"
+var stringPub = Ros.Topic.new("/mytest")|;
+stringPub.advertise("std_msgs/String");
+stringPub.structure;
+[00670809] ["data" => ""]
+
+syncline << "doc/specs/ros.tex:271";
+[01234567:syncline] "doc/specs/ros.tex:271"
+//#line 271 "doc/specs/ros.tex"
+var publisher = Ros.Topic.new("/example")|
+con: at (publisher.onConnect?(var name))
+  echo(name[0,5] + " is now listening on " + publisher.name);
+dcon: at (publisher.onDisconnect?(var name))
+  echo(name[0,5] + " is no longer listening on " + publisher.name);
+publisher.advertise("std_msgs/String");
+
+syncline << "doc/specs/ros.tex:285";
+[01234567:syncline] "doc/specs/ros.tex:285"
+//#line 285 "doc/specs/ros.tex"
+var subscriber = Ros.Topic.new("/example")|
+msg: at (subscriber.onMessage?(var m))
+  echo(m["data"]);
+subscriber.subscribe;
+[00026580] *** /urbi is now listening on /example
+
+// The types should be the same, ensure that.
+assert { subscriber.structure == publisher.structure };
+
+syncline << "doc/specs/ros.tex:297";
+[01234567:syncline] "doc/specs/ros.tex:297"
+//#line 297 "doc/specs/ros.tex"
+// A small delay to let the "is now listening" message arrives
+// before the next interaction.
+sleep(500ms);
+
+syncline << "doc/specs/ros.tex:308";
+[01234567:syncline] "doc/specs/ros.tex:308"
+//#line 308 "doc/specs/ros.tex"
+var message = publisher.structure.new;
+[00098963] ["data" => ""]
+message["data"] = "Hello world!"|;
+
+// publish the message.
+publisher << message;
+// Leave some time to asynchronous communications before shutting down.
+sleep(200ms);
+[00098964] *** Hello world!
+
+subscriber.unsubscribe;
+[00252566] *** /urbi is no longer listening on /example
+
+syncline << "doc/specs/ros.tex:357";
+[01234567:syncline] "doc/specs/ros.tex:357"
+//#line 357 "doc/specs/ros.tex"
+var logService = Ros.Service.new("/rosout/get_loggers", false)|;
+waituntil(logService.initialized);
+
+syncline << "doc/specs/ros.tex:364";
+[01234567:syncline] "doc/specs/ros.tex:364"
+//#line 364 "doc/specs/ros.tex"
+logService.name;
+[00036689] "/rosout/get_loggers"
+
+syncline << "doc/specs/ros.tex:373";
+[01234567:syncline] "doc/specs/ros.tex:373"
+//#line 373 "doc/specs/ros.tex"
+logService.resStruct;
+[00029399] ["loggers" => []]
+
+syncline << "doc/specs/ros.tex:382";
+[01234567:syncline] "doc/specs/ros.tex:382"
+//#line 382 "doc/specs/ros.tex"
+logService.reqStruct;
+[00029399] [ => ]
+
+syncline << "doc/specs/ros.tex:393";
+[01234567:syncline] "doc/specs/ros.tex:393"
+//#line 393 "doc/specs/ros.tex"
+for (var item in logService.request([=>])["loggers"])
+  echo(item);
+[00236349] *** ["level" => "INFO", "name" => "ros"]
+[00236349] *** ["level" => "INFO", "name" => "ros.roscpp"]
+[00236350] *** ["level" => "WARN", "name" => "ros.roscpp.superdebug"]
+[00236350] *** ["level" => "DEBUG", "name" => "roscpp_internal"]

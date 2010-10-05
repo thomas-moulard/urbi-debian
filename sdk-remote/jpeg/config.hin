@@ -1,0 +1,184 @@
+/* config.hin.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <stddef.h> header file. */
+#undef HAVE_STDDEF_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if the system has the type `unsigned char'. */
+#undef HAVE_UNSIGNED_CHAR
+
+/* Define to 1 if the system has the type `unsigned short'. */
+#undef HAVE_UNSIGNED_SHORT
+
+/* Define to 1 if you have the <windows.h> header file. */
+#undef HAVE_WINDOWS_H
+
+/* Although a real ANSI C compiler can deal perfectly well with pointers to
+   unspecified structures (see "incomplete types" in the spec), a few pre-ANSI
+   and pseudo-ANSI compilers get confused. To keep one of these bozos happy,
+   define INCOMPLETE_TYPES_BROKEN. This is not recommended unless you actually
+   get "missing structure definition" warnings or errors while compiling the
+   JPEG code. */
+#undef INCOMPLETE_TYPES_BROKEN
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* For 80x86 machines, you need to define NEED_FAR_POINTERS, unless you are
+   using a large-data memory model or 80386 flat-memory mode. On less
+   brain-damaged CPUs this symbol must not be defined. (Defining this symbol
+   causes large data structures to be referenced through "far" pointers and to
+   be allocated with a special version of malloc.) */
+#undef NEED_FAR_POINTERS
+
+/* Define this if your linker needs global names to be unique in less than the
+   first 15 characters. */
+#undef NEED_SHORT_EXTERNAL_NAMES
+
+/* Define this if your system does not provide typedef size_t in any of the
+   ANSI-standard places (stddef.h, stdlib.h, or stdio.h), but places it in
+   <sys/types.h> instead. */
+#undef NEED_SYS_TYPES_H
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if the C compiler supports function prototypes. */
+#undef PROTOTYPES
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Version number of package */
+#undef VERSION
+
+/* Define like PROTOTYPES; this can be used by system headers. */
+#undef __PROTOTYPES
+
+
+/*
+ * The following options affect code selection within the JPEG library,
+ * but they don't need to be visible to applications using the library.
+ * To minimize application namespace pollution, the symbols won't be
+ * defined unless JPEG_INTERNALS has been defined.
+ */
+
+#ifdef JPEG_INTERNALS
+
+/* Define this if your compiler implements ">>" on signed values as a logical
+ * (unsigned) shift; leave it undefined if ">>" is a signed (arithmetic) shift,
+ * which is the normal and rational definition.
+ */
+# undef RIGHT_SHIFT_IS_UNSIGNED
+
+
+#endif /* JPEG_INTERNALS */
+
+
+/*
+ * The remaining options do not affect the JPEG library proper,
+ * but only the sample applications cjpeg/djpeg (see cjpeg.c, djpeg.c).
+ * Other applications can ignore these.
+ */
+
+#ifdef JPEG_CJPEG_DJPEG
+
+/* These defines indicate which image (non-JPEG) file formats are allowed. */
+
+/* Define if BMP image file format is supported. */
+# undef BMP_SUPPORTED
+
+/* Define if GIF image file format is supported. */
+# undef GIF_SUPPORTED
+
+/* Define if PBMPLUS PPM/PGM image file format is supported. */
+# undef PPM_SUPPORTED
+
+/* Define if Utah RLE image file format is supported. */
+# undef RLE_SUPPORTED
+
+/* Define if Targa image file format is supported. */
+# undef TARGA_SUPPORTED
+
+
+
+/* Define this if you want to name both input and output files on the command
+ * line, rather than using stdout and optionally stdin.  You MUST do this if
+ * your system can't cope with binary I/O to stdin/stdout.  See comments at
+ * head of cjpeg.c or djpeg.c.
+ */
+# undef TWO_FILE_COMMANDLINE
+
+/* Define this if your system needs explicit cleanup of temporary files.
+ * This is crucial under MS-DOS, where the temporary "files" may be areas
+ * of extended memory; on most other systems it's not as important.
+ */
+# undef NEED_SIGNAL_CATCHER
+
+/* By default, we open image files with fopen(...,"rb") or fopen(...,"wb").
+ * This is necessary on systems that distinguish text files from binary files,
+ * and is harmless on most systems that don't.  If you have one of the rare
+ * systems that complains about the "b" spec, define this symbol.
+ */
+# undef DONT_USE_B_MODE
+
+/* Define this if you want percent-done progress reports from cjpeg/djpeg.
+ */
+# undef PROGRESS_REPORT
+
+#endif /* JPEG_CJPEG_DJPEG */
+
+/*
+ * Local Variables:
+ * mode: C
+ * End:
+ */
+

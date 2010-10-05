@@ -1,0 +1,24 @@
+//#plug urbi/all
+//#remote urbi/all
+
+// Test writing by passing reference to uvar
+
+remall.writeByUVar(remall.getSlot("a"), 42)|;
+remall.a;
+[00000001] 42
+
+class t {}|;
+var t.all2 = remall.new(0)|;
+remall.writeByUVar(t.all2.getSlot("a"), "foo")|;
+t.all2.a;
+[00000002] "foo"
+
+
+remall.writeByUVar(all.getSlot("a"), 10)|;
+all.a;
+[00000003] 10
+
+all.writeByUVar(t.all2.getSlot("a"), "bar")|;
+t.all2.a;
+[00000004] "bar"
+

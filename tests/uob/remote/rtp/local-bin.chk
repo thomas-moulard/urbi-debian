@@ -1,0 +1,22 @@
+//#plug urbi/all urbi/rtp
+//#remote urbi/all urbi/rtp
+
+UVar.new(Global, "val")|;
+Global.val = bigbin|;
+remall.setNotifyChangeByUVar(Global.getSlot("val"))|;
+sleep(100ms);
+
+var r = remall.lobby.bytesReceived|
+var s = remall.lobby.bytesSent|
+for(10) { Global.val = bigbin; sleep(100ms)};
+
+assert
+{
+  // A few uvar updates, but no binary
+  remall.lobby.bytesSent - s < bigbin.data.size;
+  // Idem
+  remall.lobby.bytesReceived  - r < bigbin.data.size;
+};
+
+"OK";
+[00000001] "OK"

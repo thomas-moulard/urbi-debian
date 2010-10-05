@@ -1,0 +1,16 @@
+//#plug urbi/generic
+var a = generic.new;
+[00000001] generic_0xADDR
+a.val;
+a.foo(1);
+[00000002] 2
+a.val;
+[00000003] 1
+a.foo(2);
+[00000004] 3
+a.val;
+[00000005] 2
+a.inc();
+[00000006] 666
+a.val;
+[00000007] 3

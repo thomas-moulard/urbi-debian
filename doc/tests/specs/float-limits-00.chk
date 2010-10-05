@@ -1,0 +1,73 @@
+syncline << "doc/specs/float-limits.tex:19";
+[01234567:syncline] "doc/specs/float-limits.tex:19"
+//#line 19 "doc/specs/float-limits.tex"
+assert {
+Float.limits.digits;
+};
+
+syncline << "doc/specs/float-limits.tex:26";
+[01234567:syncline] "doc/specs/float-limits.tex:26"
+//#line 26 "doc/specs/float-limits.tex"
+assert {
+Float.limits.digits10;
+};
+
+syncline << "doc/specs/float-limits.tex:33";
+[01234567:syncline] "doc/specs/float-limits.tex:33"
+//#line 33 "doc/specs/float-limits.tex"
+assert {
+1 != 1 + Float.limits.epsilon;
+1 == 1 + Float.limits.epsilon / 2;
+};
+
+syncline << "doc/specs/float-limits.tex:40";
+[01234567:syncline] "doc/specs/float-limits.tex:40"
+//#line 40 "doc/specs/float-limits.tex"
+assert {
+Float.limits.max     != Float.inf;
+Float.limits.max * 2 == Float.inf;
+};
+
+syncline << "doc/specs/float-limits.tex:48";
+[01234567:syncline] "doc/specs/float-limits.tex:48"
+//#line 48 "doc/specs/float-limits.tex"
+assert {
+Float.inf != Float.limits.radix ** (Float.limits.maxExponent - 1);
+Float.inf == Float.limits.radix ** Float.limits.maxExponent;
+};
+
+syncline << "doc/specs/float-limits.tex:56";
+[01234567:syncline] "doc/specs/float-limits.tex:56"
+//#line 56 "doc/specs/float-limits.tex"
+assert {
+Float.inf != 10 ** Float.limits.maxExponent10;
+Float.inf == 10 ** (Float.limits.maxExponent10 + 1);
+};
+
+syncline << "doc/specs/float-limits.tex:63";
+[01234567:syncline] "doc/specs/float-limits.tex:63"
+//#line 63 "doc/specs/float-limits.tex"
+assert {
+0 != Float.limits.min;
+};
+
+syncline << "doc/specs/float-limits.tex:70";
+[01234567:syncline] "doc/specs/float-limits.tex:70"
+//#line 70 "doc/specs/float-limits.tex"
+assert {
+0 != Float.limits.radix ** Float.limits.minExponent;
+};
+
+syncline << "doc/specs/float-limits.tex:77";
+[01234567:syncline] "doc/specs/float-limits.tex:77"
+//#line 77 "doc/specs/float-limits.tex"
+assert {
+0 != 10 ** Float.limits.minExponent10;
+};
+
+syncline << "doc/specs/float-limits.tex:83";
+[01234567:syncline] "doc/specs/float-limits.tex:83"
+//#line 83 "doc/specs/float-limits.tex"
+assert {
+Float.limits.radix == 2;
+};

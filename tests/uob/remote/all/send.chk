@@ -1,0 +1,27 @@
+//#remote urbi/all
+
+remall.a = 1;
+[00000001] 1
+remall.b = 1;
+[00000002] 1
+remall.sendString("remall.a  = 12;");
+[00000003] 0
+sleep(500ms);
+remall.a;
+[00000004] 12
+remall.sendBuf("remall.a = 13;remall.b = 13;", 14);
+[00000005] 0
+sleep(500ms);
+remall.a;
+[00000006] 13
+remall.b;
+[00000007] 1
+var Object.a = 1;
+[00000008] 1
+remall.sendPar();
+[00000009] 0
+sleep(500ms);
+Object.a;
+[00000010] 123
+
+

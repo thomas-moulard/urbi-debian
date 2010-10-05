@@ -1,0 +1,9 @@
+Date: 2010-09-30 14:59:53 +0200
+Day: September 30, 2010
+Description: urbi-sdk-2.3-11-g8380443
+Id: 8380443 (2010-09-30 14:59:53 +0200 demaille@gostai.com: package: use git-version-gen to un-stub libuvalue's revision information.)
+Patch: 11
+Revision: 8380443
+TarballVersion: urbi-sdk-2.3-11-g8380443
+Version: urbi-sdk-2.3
+VersionRev: version urbi-sdk-2.3 patch 11 revision 8380443

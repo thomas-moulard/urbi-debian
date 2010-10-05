@@ -1,0 +1,15 @@
+//#plug urbi/all
+all.throwException(0);
+[00000001:error] !!! input.u:2.1-21: throwException: Unknown exception caught while calling all.throwException
+all.throwException(1);
+[00000002:error] !!! input.u:4.1-21: throwException: Exception caught while calling all.throwException: KABOOM
+1;
+[00000003] 1
+
+detach(all.throwException(1))|;
+[00000004:error] !!! input.u:9.8-28: throwException: Exception caught while calling all.throwException: KABOOM
+[00000005:error] !!!    called from: input.u:9.1-29: detach
+
+sleep(100ms); 2;
+[00000006] 2
+

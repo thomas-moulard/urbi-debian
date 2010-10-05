@@ -1,0 +1,88 @@
+syncline << "doc/specs/socket.tex:27";
+[01234567:syncline] "doc/specs/socket.tex:27"
+//#line 27 "doc/specs/socket.tex"
+class Global.Dialog
+{
+  var lines =
+  [
+    "Hi!",
+    "Hey!",
+    "Hey you doin'?",
+    "Whazaaa!",
+    "See ya.",
+  ]|;
+
+  function reply(var s)
+  {
+    for (var i: lines.size - 1)
+      if (s == lines[i])
+        return lines[i + 1];
+    "off";
+  }
+}|;
+
+syncline << "doc/specs/socket.tex:56";
+[01234567:syncline] "doc/specs/socket.tex:56"
+//#line 56 "doc/specs/socket.tex"
+var server =
+  do (Server.new)
+  {
+    at (connection?(var socket))
+      at (socket.received?(var data))
+      {
+        var reply = Dialog.reply(data);
+        socket.write(reply);
+        echo("server: " + reply);
+        if (reply == "off")
+          socket.disconnect;
+      };
+  }|;
+
+syncline << "doc/specs/socket.tex:76";
+[01234567:syncline] "doc/specs/socket.tex:76"
+//#line 76 "doc/specs/socket.tex"
+var client =
+  do (Socket.new)
+  {
+    at (received?(var data))
+    {
+      var reply = Dialog.reply(data);
+      write(reply);
+      echo("client: " + reply);
+    };
+  }|;
+
+syncline << "doc/specs/socket.tex:91";
+[01234567:syncline] "doc/specs/socket.tex:91"
+//#line 91 "doc/specs/socket.tex"
+every (100ms)
+  Socket.poll,
+
+syncline << "doc/specs/socket.tex:99";
+[01234567:syncline] "doc/specs/socket.tex:99"
+//#line 99 "doc/specs/socket.tex"
+server.listen("localhost", "0");
+clog << "connecting to %s:%s" % [server.host, server.port];
+
+syncline << "doc/specs/socket.tex:106";
+[01234567:syncline] "doc/specs/socket.tex:106"
+//#line 106 "doc/specs/socket.tex"
+client.connect(server.host, server.port);
+echo("client: " + Dialog.lines[0]);
+client.write(Dialog.lines[0]);
+[00000003] *** client: Hi!
+
+syncline << "doc/specs/socket.tex:116";
+[01234567:syncline] "doc/specs/socket.tex:116"
+//#line 116 "doc/specs/socket.tex"
+waituntil(client.disconnected?);
+[00000004] *** server: Hey!
+[00000005] *** client: Hey you doin'?
+[00000006] *** server: Whazaaa!
+[00000007] *** client: See ya.
+[00000008] *** server: off
+
+syncline << "doc/specs/socket.tex:136";
+[01234567:syncline] "doc/specs/socket.tex:136"
+//#line 136 "doc/specs/socket.tex"
+var s = Socket.new|

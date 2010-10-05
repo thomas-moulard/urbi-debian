@@ -1,0 +1,274 @@
+syncline << "doc/specs/string.tex:31";
+[01234567:syncline] "doc/specs/string.tex:31"
+//#line 31 "doc/specs/string.tex"
+assert {
+String.new == "";
+String == "";
+"123".new == "123";
+};
+
+syncline << "doc/specs/string.tex:41";
+[01234567:syncline] "doc/specs/string.tex:41"
+//#line 41 "doc/specs/string.tex"
+assert("23.03".asFloat == 23.03);
+
+"123abc".asFloat;
+[00000001:error] !!! asFloat: unable to convert to float: "123abc"
+
+syncline << "doc/specs/string.tex:52";
+[01234567:syncline] "doc/specs/string.tex:52"
+//#line 52 "doc/specs/string.tex"
+assert("123".asList == ["1", "2", "3"]);
+for (var v : "123")
+  echo(v);
+[00000001] *** 1
+[00000001] *** 2
+[00000001] *** 3
+
+syncline << "doc/specs/string.tex:63";
+[01234567:syncline] "doc/specs/string.tex:63"
+//#line 63 "doc/specs/string.tex"
+assert {
+"foo".asPrintable == "\"foo\"";
+"foo".asPrintable.asPrintable == "\"\\\"foo\\\"\"";
+};
+
+syncline << "doc/specs/string.tex:70";
+[01234567:syncline] "doc/specs/string.tex:70"
+//#line 70 "doc/specs/string.tex"
+assert {
+"\"foo\"".asString == "\"foo\"";
+};
+
+syncline << "doc/specs/string.tex:78";
+[01234567:syncline] "doc/specs/string.tex:78"
+//#line 78 "doc/specs/string.tex"
+assert {
+"foo".closest(["foo", "baz", "qux", "quux"]) == "foo";
+"bar".closest(["foo", "baz", "qux", "quux"]) == "baz";
+"FOO".closest(["foo", "bar", "baz"])         == "foo";
+"qux".closest(["foo", "bar", "baz"])         == nil;
+};
+
+syncline << "doc/specs/string.tex:91";
+[01234567:syncline] "doc/specs/string.tex:91"
+//#line 91 "doc/specs/string.tex"
+assert {
+"foo".distance("foo") == 0;
+"bar".distance("baz") == 1;
+"foo".distance("bar") == 3;
+};
+
+syncline << "doc/specs/string.tex:100";
+[01234567:syncline] "doc/specs/string.tex:100"
+//#line 100 "doc/specs/string.tex"
+assert {
+String.fresh == "_5";
+"foo".fresh == "foo_6";
+};
+
+syncline << "doc/specs/string.tex:107";
+[01234567:syncline] "doc/specs/string.tex:107"
+//#line 107 "doc/specs/string.tex"
+assert {
+String.fromAscii(  97) == "a";
+String.fromAscii(  98) == "b";
+String.fromAscii(0xFF) == "\xff";
+[0, 1, 2, 254, 255]
+  .map(function (var v) { String.fromAscii(v) })
+  .map(function (var v) { v.toAscii })
+  == [0, 1, 2, 254, 255];
+};
+
+syncline << "doc/specs/string.tex:157";
+[01234567:syncline] "doc/specs/string.tex:157"
+//#line 157 "doc/specs/string.tex"
+assert {
+"".isDigit;
+"0123456789".isDigit;
+!"a".isDigit;
+
+"".isLower;
+"lower".isLower;
+! "Not Lower".isLower;
+
+"".isUpper;
+"UPPER".isUpper;
+! "Not Upper".isUpper;
+};
+
+syncline << "doc/specs/string.tex:176";
+[01234567:syncline] "doc/specs/string.tex:176"
+//#line 176 "doc/specs/string.tex"
+assert {
+"|".join([1, 2, 3], "(", ")")      == "(1|2|3)";
+", ".join([1, [2], "3"], "[", "]") == "[1, [2], 3]";
+};
+
+syncline << "doc/specs/string.tex:185";
+[01234567:syncline] "doc/specs/string.tex:185"
+//#line 185 "doc/specs/string.tex"
+assert {
+"Hello, World!".replace("Hello", "Bonjour")
+                      .replace("World!", "Monde !") ==
+       "Bonjour, Monde !";
+};
+
+syncline << "doc/specs/string.tex:193";
+[01234567:syncline] "doc/specs/string.tex:193"
+//#line 193 "doc/specs/string.tex"
+assert {
+"foo".size == 3;
+"".size == 0;
+};
+
+syncline << "doc/specs/string.tex:209";
+[01234567:syncline] "doc/specs/string.tex:209"
+//#line 209 "doc/specs/string.tex"
+assert {
+       "a,b;c".split(",") == ["a", "b;c"];
+       "a,b;c".split(";") == ["a,b", "c"];
+      "foobar".split("x") == ["foobar"];
+     "foobar".split("ob") == ["fo", "ar"];
+};
+
+syncline << "doc/specs/string.tex:219";
+[01234567:syncline] "doc/specs/string.tex:219"
+//#line 219 "doc/specs/string.tex"
+assert {
+"a,b;c".split([",", ";"]) == ["a", "b", "c"];
+};
+
+syncline << "doc/specs/string.tex:226";
+[01234567:syncline] "doc/specs/string.tex:226"
+//#line 226 "doc/specs/string.tex"
+assert {
+"  abc  def\tghi\n".split == ["abc", "def", "ghi"];
+};
+
+syncline << "doc/specs/string.tex:233";
+[01234567:syncline] "doc/specs/string.tex:233"
+//#line 233 "doc/specs/string.tex"
+assert {
+"foobar".split("") == ["f", "o", "o", "b", "a", "r"];
+};
+
+syncline << "doc/specs/string.tex:240";
+[01234567:syncline] "doc/specs/string.tex:240"
+//#line 240 "doc/specs/string.tex"
+assert {
+"a:b:c".split(":",  1) == ["a", "b:c"];
+"a:b:c".split(":", -1) == ["a", "b", "c"];
+};
+
+syncline << "doc/specs/string.tex:247";
+[01234567:syncline] "doc/specs/string.tex:247"
+//#line 247 "doc/specs/string.tex"
+assert {
+"aaa:bbb;ccc".split([":", ";"], -1, false) == ["aaa",      "bbb",      "ccc"];
+"aaa:bbb;ccc".split([":", ";"], -1, true)  == ["aaa", ":", "bbb", ";", "ccc"];
+};
+
+syncline << "doc/specs/string.tex:254";
+[01234567:syncline] "doc/specs/string.tex:254"
+//#line 254 "doc/specs/string.tex"
+assert {
+"foobar".split("o")                   == ["f", "", "bar"];
+"foobar".split("o", -1, false, true)  == ["f", "", "bar"];
+"foobar".split("o", -1, false, false) == ["f",     "bar"];
+};
+
+syncline << "doc/specs/string.tex:263";
+[01234567:syncline] "doc/specs/string.tex:263"
+//#line 263 "doc/specs/string.tex"
+assert {
+   "a".toAscii == 97;
+   "b".toAscii == 98;
+"\xff".toAscii == 0xff;
+"Hello, World!\n"
+  .asList
+  .map(function (var v) { v.toAscii })
+  .map(function (var v) { String.fromAscii(v) })
+  .join
+  == "Hello, World!\n";
+};
+
+syncline << "doc/specs/string.tex:278";
+[01234567:syncline] "doc/specs/string.tex:278"
+//#line 278 "doc/specs/string.tex"
+assert {
+"Hello, World!".toLower == "hello, world!";
+};
+
+syncline << "doc/specs/string.tex:285";
+[01234567:syncline] "doc/specs/string.tex:285"
+//#line 285 "doc/specs/string.tex"
+assert {
+"Hello, World!".toUpper == "HELLO, WORLD!";
+};
+
+syncline << "doc/specs/string.tex:291";
+[01234567:syncline] "doc/specs/string.tex:291"
+//#line 291 "doc/specs/string.tex"
+assert {
+  "" == "";        !("" != "");
+!("" == "\0");       "" != "\0";
+
+  "0" == "0";      !("0" != "0");
+!("0" == "1");       "0" != "1";
+!("1" == "0");       "1" != "0";
+};
+
+syncline << "doc/specs/string.tex:307";
+[01234567:syncline] "doc/specs/string.tex:307"
+//#line 307 "doc/specs/string.tex"
+assert {
+"%s + %s = %s" % [1, 2, 3] == "1 + 2 = 3";
+};
+
+syncline << "doc/specs/string.tex:313";
+[01234567:syncline] "doc/specs/string.tex:313"
+//#line 313 "doc/specs/string.tex"
+assert {
+"foo" * 0 == "";
+"foo" * 1 == "foo";
+"foo" * 3 == "foofoofoo";
+};
+
+syncline << "doc/specs/string.tex:321";
+[01234567:syncline] "doc/specs/string.tex:321"
+//#line 321 "doc/specs/string.tex"
+assert {
+"foo" + "bar" == "foobar";
+"foo" + "" == "foo";
+"foo" + 3 == "foo3";
+"foo" + [1, 2, 3] == "foo[1, 2, 3]";
+};
+
+syncline << "doc/specs/string.tex:331";
+[01234567:syncline] "doc/specs/string.tex:331"
+//#line 331 "doc/specs/string.tex"
+assert {
+"" < "a";
+!("a" < "");
+"a" < "b";
+!("a" < "a");
+};
+
+syncline << "doc/specs/string.tex:342";
+[01234567:syncline] "doc/specs/string.tex:342"
+//#line 342 "doc/specs/string.tex"
+assert {
+"foobar"[0, 3] == "foo";
+"foobar"[0] == "f";
+};
+
+syncline << "doc/specs/string.tex:355";
+[01234567:syncline] "doc/specs/string.tex:355"
+//#line 355 "doc/specs/string.tex"
+var s1 = "foobar" | var s2 = s1 |
+assert((s1[0, 3] = "quux") == "quux");
+assert(s1 == "quuxbar");
+assert(s2 == "quuxbar");
+assert((s1[4, 7] = "") == "");
+assert(s2 == "quux");

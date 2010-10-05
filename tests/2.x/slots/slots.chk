@@ -1,0 +1,38 @@
+var a = Object.new|;
+var a.foo = 1;
+[00000001] 1
+
+var a.bar = 2;
+[00000002] 2
+
+var a.baz = 3;
+[00000003] 3
+
+a.localSlotNames.sort;
+[00000004] ["bar", "baz", "foo"]
+
+a.removeSlot("baz");
+[00000005] Object_0xADDR
+a.localSlotNames.sort;
+[00000006] ["bar", "foo"]
+
+a.setSlot("baz", 42);
+[00000007] 42
+a.baz;
+[00000008] 42
+a.getSlot("baz");
+[00000009] 42
+
+a.updateSlot("foo", 100);
+[00000010] 100
+a.foo;
+[00000011] 100
+
+a.updateSlot("bar", function (x) {x})|;
+a.bar (42);
+[00000012] 42
+
+a.getSlot("bar");
+[00000013] function (var x) {
+[:]  x
+[:]}

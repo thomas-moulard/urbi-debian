@@ -1,0 +1,5 @@
+//#roscore
+//#plug urbi/ros
+clog << getenv("ROS_MASTER_URI");
+Ros.checkMaster;
+[00000001] 1
