@@ -250,7 +250,7 @@ sub fetch_keywords ()
   # Date -> $date and so forth.
   my %res;
   # Are we in a git repository?
-  if (-d "$srcdir/.git")
+  if (`git rev-parse --git-dir`)
   {
     verbose 2, "in a Git repository";
 
