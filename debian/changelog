@@ -1,3 +1,9 @@
+urbi-sdk (2.3-3) lucid; urgency=low
+
+  * Disable documentation generation.
+
+ -- Thomas Moulard <thomas.moulard@gmail.com>  Wed, 06 Oct 2010 09:45:24 +0200
+
 urbi-sdk (2.3-2) lucid; urgency=low
 
   * Add texlive-extra-utils to build dependencies.
