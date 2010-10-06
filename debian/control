@@ -51,7 +51,6 @@ Package: liburbi-sdk-dev
 Section: libdevel
 Architecture: any
 Depends: libboost-dev (>= 1.38), liburbi-sdk2.3 (= ${binary:Version}), ${misc:Depends}
-Suggests: liburbi-sdk-doc
 Description: the Urbi robotics framework development package
  Urbi is an innovative, simple to use, yet powerful universal software
  platform for robotics.
@@ -62,17 +61,3 @@ Description: the Urbi robotics framework development package
  .
  This package contains development files (headers and shared
  libraries symbolic links).
-
-Package: liburbi-sdk-doc
-Section: libdevel
-Architecture: any
-Depends: ${misc:Depends}
-Description: the Urbi robotics framework development package
- Urbi is an innovative, simple to use, yet powerful universal software
- platform for robotics.
- .
- It includes a C++ distributed component architecture, a parallel and
- event-driven script language for orchestration, and many modules and
- interfaces to other platforms or components.
- .
- This package contains the documentation.
