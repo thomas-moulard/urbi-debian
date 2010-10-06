@@ -1,3 +1,9 @@
+urbi-sdk (2.3-4) lucid; urgency=low
+
+  * Add missing libraries in liburbi-sdk.
+
+ -- Thomas Moulard <thomas.moulard@gmail.com>  Wed, 06 Oct 2010 11:38:48 +0200
+
 urbi-sdk (2.3-3) lucid; urgency=low
 
   * Disable documentation generation.
