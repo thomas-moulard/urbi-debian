@@ -1,7 +1,7 @@
 Source: urbi-sdk
 Priority: extra
 Maintainer: Thomas Moulard <thomas.moulard@gmail.com>
-Build-Depends: debhelper (>= 7),
+Build-Depends: debhelper (>= 7.0.50),
 	       bc,
 	       libboost-all-dev (>= 1.38),
 	       flex (>=2.5.35),
