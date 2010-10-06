@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 7),
 	       gnuplot,
 	       graphviz,
 	       imagemagick,
-	       texlive-base, texlive-latex-extra, texlive-extra-utils
+	       texlive-base, texlive-latex-extra, texlive-extra-utils,
 	       python-docutils,
 	       socat,
 	       tex4ht,
