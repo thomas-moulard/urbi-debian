@@ -1,3 +1,9 @@
+urbi-sdk (2.3-2) lucid; urgency=low
+
+  * Add texlive-extra-utils to build dependencies.
+
+ -- Thomas Moulard <thomas.moulard@gmail.com>  Wed, 06 Oct 2010 08:59:54 +0200
+
 urbi-sdk (2.3-1) lucid; urgency=low
 
   * Initial work.
